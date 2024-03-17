@@ -199,9 +199,9 @@ public class Events {
 
     public static void recoveryHealth() {
         switch (items.get(iteratorDeleted).getState()) {
-            case PIE -> heart.setHp(Math.max(heart.getHp() + 90, 90));
-            case SNOW_PIECE -> heart.setHp(Math.max(heart.getHp() + 70, 90));
-            case GLAMBURGUER -> heart.setHp(Math.max(heart.getHp() + 40, 90));
+            case PIE -> heart.setHp(Math.min(heart.getHp() + 90, 90));
+            case SNOW_PIECE -> heart.setHp(Math.min(heart.getHp() + 70, 90));
+            case GLAMBURGUER -> heart.setHp(Math.min(heart.getHp() + 40, 90));
         }
     }
 
