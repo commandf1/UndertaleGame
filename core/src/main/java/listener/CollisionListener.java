@@ -2,6 +2,7 @@ package listener;
 
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.game.*;
 
 
@@ -32,8 +33,8 @@ public class CollisionListener {
     }
 
 
-
-
-
-
+    public static boolean isCollided(Heart heart, Label sans) {
+        Rectangle rectangle = new Rectangle(sans.getX(), sans.getY(), sans.getWidth(), sans.getHeight());
+        return Intersector.overlaps(heart.getHitBox(), rectangle);
+    }
 }

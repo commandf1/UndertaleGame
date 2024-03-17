@@ -6,15 +6,15 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
+import static com.game.Undertale.shapeRenderer;
+
 public class AlertBox extends Actor {
     private final Color borderColor = Color.RED;
-    private final ShapeRenderer shapeRenderer;
 
     public AlertBox(float width, float height, float x, float y) {
         setWidth(width);
         setHeight(height);
         setX(x); setY(y);
-        shapeRenderer = new ShapeRenderer();
     }
 
     @Override

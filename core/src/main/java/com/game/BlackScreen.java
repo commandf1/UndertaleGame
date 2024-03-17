@@ -3,47 +3,70 @@ package com.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
-
-
-import java.util.ArrayList;
-
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import java.time.Duration;
+import java.time.LocalTime;
+import static com.game.Events.canAddItems;
+import static com.game.Events.optionSelected;
 import static com.game.BattleController.*;
+import static com.game.DataBase.*;
 import static com.game.Events.detectEvent;
+import static com.game.Sounds.stopAllSounds;
+import static com.game.Undertale.*;
 
 public class BlackScreen implements Screen {
 
-    public static ShapeRenderer shapeRenderer;
-    public static float deltaTime = 0;
+    private static Undertale game;
+    public static int score = 0;
 
-    public static final ArrayList<ObjetsItems> objectItems = new ArrayList<>();
+    public static Sans sans;
 
     public static Heart heart;
 
+    private LifeBar lifeBar;
     public static FightOp fightOp;
 
     public static ActOp actOp;
 
     public static ItemOp itemOp;
 
+    private Label labelLife, labelLifeValue, labelName;
+
     public static MercyOp mercyOp;
 
     public static BoxHeart boxHeart;
 
-    private OrthographicCamera camera;
-
-    float beginTime;
-
-    float endTime;
-
     private Texture image, fightImg, actImg, itemImg, mercyImg;
-    public static SpriteBatch batch;
 
+    public static float VH_WIDTH =  (float) Gdx.graphics.getWidth() / 100;
+    public static float VH_HEIGHT = (float) Gdx.graphics.getHeight() / 100;
 
+    public BlackScreen(Undertale game) {
+        BlackScreen.game = game;
+        BlackScreen.game.setTimePlayed(LocalTime.now());
+        dispose();
+    }
+
+    public static void updateGameOnHeartDeath() {
+        if (heart.getHp() == 0 ) {
+
+            deleteBones();
+            updatePlayerStats(game.getName(), score, Duration.between(game.getTimePlayed(), LocalTime.now()), false);
+            act = score = 0;
+            game.showGameOverScreen(heart);
+        }
+    }
+
+    public static void updateGameOnHeartWon() {
+            deleteBones();
+            updatePlayerStats(game.getName(), score, Duration.between(game.getTimePlayed(), LocalTime.now()), true);
+            act = score = 0;
+            game.showMainMenuScreen();
+    }
 
     public void loadImages() {
         image = new Texture(Gdx.files.internal("images/heart.png"));
@@ -54,51 +77,75 @@ public class BlackScreen implements Screen {
     }
 
     public void loadObject() {
-        shapeRenderer = new ShapeRenderer();
-        batch = new SpriteBatch();
-        fightOp = new FightOp(fightImg, batch, 20, 20);
-        actOp = new ActOp(actImg, batch, fightOp.getX() + (fightImg.getWidth() * 0.2f) + 5, 20);
-        itemOp = new ItemOp(itemImg, batch, actOp.getX() + actImg.getWidth() * 0.2f + 5, 20);
-        mercyOp = new MercyOp(mercyImg, batch, itemOp.getX() + itemImg.getWidth() * 0.2f  + 5, 20);
-        boxHeart = new BoxHeart(1000, 250);
-
+        sans = new Sans();
+        fightOp = new FightOp(fightImg, batch, VH_WIDTH * 2f, VH_HEIGHT * 10);
+        actOp = new ActOp(actImg, batch, fightOp.getX() + (fightImg.getWidth() * fightOp.getScaleX()) + VH_WIDTH * 5, fightOp.getY());
+        itemOp = new ItemOp(itemImg, batch, actOp.getX() + actImg.getWidth() * actOp.getScaleX() + VH_WIDTH * 5, fightOp.getY());
+        mercyOp = new MercyOp(mercyImg, batch, itemOp.getX() + itemImg.getWidth() * itemOp.getScaleX()  + VH_WIDTH * 5, fightOp.getY());
+        boxHeart = new BoxHeart(90 * VH_WIDTH, VH_HEIGHT * 30);
+        lifeBar = new LifeBar(VH_WIDTH * 40,  (fightOp.getY() + fightOp.getHeight() * fightOp.getScaleY()) + VH_HEIGHT * 7, VH_WIDTH * 40, VH_HEIGHT * 5);
         float heartX = boxHeart.getX() + (boxHeart.getWidth() - image.getWidth() * 0.5f) * 0.5f;
         float heartY = boxHeart.getY() + (boxHeart.getHeight() - image.getHeight() * 0.5f) * 0.5f;
         heart = new Heart(image, heartX, heartY);
         heart.setPositionFightOp();
         heart.updateHitBox();
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-
+        stage.addActor(heart);
+        stage.addActor(sans);
     }
+
+    public void createLabels()
+    {
+        Label.LabelStyle labelStyle = new Label.LabelStyle();
+        labelStyle.font = getFont(50);
+        labelStyle.fontColor = Color.WHITE;
+
+        labelName = new Label(game.getName(), labelStyle);
+        labelLife = new Label("PS" + heart.getHp(), labelStyle);
+
+        labelLifeValue = new Label(String.format("%d / 90", (int)(heart.getHp())), labelStyle);
+
+        labelName.setPosition(fightOp.getX() + VH_WIDTH * 2 , lifeBar.getY() - VH_HEIGHT * 1.1f );
+        labelLife.setPosition(lifeBar.getX() - labelLife.getWidth()/2, labelName.getY() - VH_HEIGHT * 1.1f  );
+        labelLifeValue.setPosition(lifeBar.getX() + lifeBar.getWidth() + 10, labelName.getY() - VH_HEIGHT * 1.1f);
+
+        stage.addActor(labelLife);
+        stage.addActor(labelLifeValue);
+        stage.addActor(labelName);
+    }
+
+
 
     @Override
     public void show() {
+        canAddItems = true;
+        closeConnection();
+        //Sounds.fightSound();
         loadImages();
         loadObject();
-
-
-        Sounds.fightSound();
-
+        createLabels();
+        Gdx.input.setInputProcessor(stage);
     }
 
     @Override
-    public void render(float delta) {
-        deltaTime += Gdx.graphics.getDeltaTime();
-        batch.setProjectionMatrix(camera.combined);
-
+    public void render(float v) {
+        updateGameOnHeartDeath();
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         Gdx.input.setInputProcessor(KeyListener.get());
-        if (heart.getHp() < 0) {
-            Gdx.app.exit();
-        }
+
+        //updateGameOnHeartDeath();
+
         update();
 
-
+        labelLife.setText("PS");
+        labelName.setText(game.getName());
+        labelLifeValue.setText(String.format("%d / 90", (int)(heart.getHp())));
         boxHeart.draw(batch, 1);
         fightOp.draw(); actOp.draw(); itemOp.draw(); mercyOp.draw();
-        heart.draw(batch, 1);
+        lifeBar.draw();
+        lifeBar.setCurrentValue(heart.getHp());
+        stage.act(v);
+        stage.draw();
     }
 
     static void drawBlackGround() {
@@ -113,27 +160,14 @@ public class BlackScreen implements Screen {
 
     void update() {
         if ( !heart.isTurn ) {
-            generateAct();
-
+             generateAct();
         } else {
             boxHeart.changeDimensionsMax();
             Heart.canMoveLeft = !Gdx.input.isKeyPressed(Input.Keys.LEFT) || Heart.canMoveLeft;
             Heart.canMoveRight = !Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Heart.canMoveRight;
-            for (ObjetsItems objetsItem: objectItems) {
-                objetsItem.draw();
-            }
+            stage.draw();
             detectEvent();
         }
-
-
-
-
-
-
-
-
-
-
 
         /*
         *
@@ -147,7 +181,6 @@ public class BlackScreen implements Screen {
         {
             boxHeart.changeDimensionsMax();
         }*/
-        beginTime = endTime;
 
         if (Gdx.input.isKeyPressed(Input.Keys.Q)) {
             Gdx.app.exit();
@@ -166,22 +199,31 @@ public class BlackScreen implements Screen {
 
     @Override
     public void resume() {
-        // Método llamado cuando la aplicación se reanuda.
     }
 
     @Override
     public void hide() {
-        // Método llamado cuando la pantalla se oculta.
+        dispose();
+        optionSelected = 0;
     }
 
     @Override
     public void dispose() {
-        shapeRenderer.dispose();
-        fightImg.dispose();
-        actImg.dispose();
-        itemImg.dispose();
-        mercyImg.dispose();
-        image.dispose(); // Libera la memoria de la imagen
-        batch.dispose(); // Libera la memoria del SpriteBatch
+        if (labelLife != null && labelLifeValue != null && labelName != null) {
+            labelName.clear();
+            labelLife.clear();
+            labelLifeValue.clear();
+        }
+        stopAllSounds();
+        stage.clear();
+        if (fightImg != null) {
+            fightImg.dispose();
+            actImg.dispose();
+            itemImg.dispose();
+            mercyImg.dispose();
+        }
+        if (image != null) {
+            image.dispose();
+        }
     }
 }

@@ -6,22 +6,48 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.Actor;
 import listener.CollisionListener;
-
+import java.util.ArrayList;
+import static com.badlogic.gdx.math.MathUtils.random;
+import static com.game.BattleController.*;
 import static com.game.BlackScreen.*;
-import static com.game.Sounds.soulDamaged;
+import static com.game.Sounds.*;
+import static com.game.Undertale.batch;
+import static com.game.Undertale.shapeRenderer;
 
-public class ObjetsItems extends Options{
+public class ObjetsItems extends Actor {
     private Rectangle hitBox;
+
+    private Direction direction;
 
     private boolean startFadeOut = false;
 
-    private float opacity = 1f;
+    private float opacity = 1f, angle = 0;
 
     private static final int[] valuesX = { 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6, 6,6, 6, 6, 55, 55, 55, 55,104, 104 , 104, 104, 104, 104 , 149, 149, 149, 197, 197,  245, 245, 245, 245, 245, 197, 197, 149, 149};
+
+    private final float[] Y_DESTINIES = {boxHeart.getY(), boxHeart.getY() + boxHeart.getHeight()/2 - 50, boxHeart.getY() + boxHeart.getHeight() - 80};
+
+    private float yDestinyGasterBlaster = 0;
+
     private int index = 0;
     private boolean isReverseSense = false;
+
+    private float seconds = 0;
     Sprite imageObject;
+
+    public Direction getDirection() {
+        return direction;
+    }
+
+    public void setAngle(float angel) {
+        this.angle = angel;
+    }
+
+    public float getAngle() {
+        return angle;
+    }
 
     public void setIsReverseSense(boolean sense) {
         isReverseSense = sense;
@@ -31,62 +57,85 @@ public class ObjetsItems extends Options{
         return this.isReverseSense;
     }
 
-    public ObjetsItems(int kind, float x, float y) {
+    public ObjetsItems(int kind, float x, float y, Direction direction) {
+        this.imageObject = new Sprite(new Texture("images/SansSprite.png"));
+        this.direction = direction;
+
+        setX(x);
+        setY(y);
         switch (kind) {
-            case 0:
+            case 0 -> {
                 // Word sans
                 this.imageObject = new Sprite(new Texture("images/Sans.png"));
-                setX(x); setY(y);
                 hitBox = new Rectangle(getX() - 40, getY(), getWidth() * 0.2f, getHeight());
-                break;
-            case 1:
+            }
+            case 1 -> {
                 // small bone
-                this.imageObject = new Sprite(new Texture("images/SansSprite.png"));
                 this.imageObject.setRegion( 398 , 693 , 12, 52);
-                setOriginX(getWidth()/2); setOriginY(getHeight()/2);
-                setX(x); setY(y);
                 hitBox = new Rectangle( getX() - getWidth() / 2, getY() - getHeight()/2, getWidth()*2.5f-5, getHeight()-8);
-                break;
-            case 2:
+            }
+            case 2 -> {
                 // long bone
-                this.imageObject = new Sprite(new Texture("images/SansSprite.png"));
                 this.imageObject.setRegion( 278 , 573 , 12, 202);
-                setOriginX(getWidth()/2); setOriginY(getHeight()/2);
-                setX(x); setY(y);
                 hitBox = new Rectangle( getX() - getWidth() / 2,  getY() - getHeight() / 2, (getWidth()*2.5f)-4, getHeight()-4);
-                break;
-            case 3:
-                // long bones vertical
-                this.imageObject = new Sprite(new Texture("images/SansSprite.png"));
-                this.imageObject.setRegion( 398 , 573 , 204, 102);
-                setX(x); setY(y);
-                hitBox = new Rectangle(getX() , getY() , (getWidth()*2.5f)-4, getHeight()*2f-4);
-                break;
-            case 4:
-                // long bones horizontal
-                this.imageObject = new Sprite(new Texture("images/SansSprite.png"));
-                this.imageObject.setRegion( 293 , 573 , 102, 204);
-                setX(x); setY(y);
-                hitBox = new Rectangle( getX() , getY() , (getWidth()*2.5f)-4, getHeight()*2f-4);
-                break;
-            case 5:
-                // Ga--------------------------------------ster Blaster opened
-                this.imageObject = new Sprite(new Texture("images/SansSprite.png"));
-                // Gaster Blaster opened left eye   : this.imageObject.setRegion( 245 , 861 , 44, 57);
-                // Gaster Blaster opened right eye  : this.imageObject.setRegion( 197 , 861 , 44, 57);
-                // Gaster Blaster opened            : this.imageObject.setRegion( 149 , 861 , 44, 57);
-                // Gaster Blaster closed small      : this.imageObject.setRegion( 104 , 861 , 44, 57);
-                // Gaster Blaster closed medium     : this.imageObject.setRegion( 55 , 861 , 44, 57);
-                // Gaster Blaster almost opened     : this.imageObject.setRegion( 6 , 861 , 44, 57);
-                this.imageObject.setRegion( 104 , 861 , 44, 57);
-                setOriginX(getWidth()/2); setOriginY(getHeight()/2);
-                setX(x); setY(y);
 
-                hitBox = new Rectangle(getX() - getWidth() / 2, getY() - getHeight() / 2, (getWidth()*2.5f)-4, getHeight()*2f-4);
-                break;
+            }
+            case 3 -> {
+                // long bones vertical
+                setOriginX(getWidth() / 2);
+                setOriginY(getHeight() / 2);
+                this.imageObject.setRegion( 398 , 573 , 204, 102);
+                hitBox = new Rectangle(getX() , getY() , (getWidth()*2.5f)-4, getHeight()*2f-4);
+            }
+            case 4 -> {
+                // long bones horizontal
+                setOriginX(getWidth() / 2);
+                setOriginY(getHeight() / 2);
+                this.imageObject.setRegion( 293 , 573 , 102, 204);
+                hitBox = new Rectangle( getX() , getY() , (getWidth()*2.5f)-4, getHeight()*2f-4);
+            }
+            case 5 -> {
+                this.imageObject = new Sprite(new Texture("images/Platform.png"));
+                setOriginX(getWidth() / 2);
+                setOriginY(getHeight() / 2);
+                hitBox = new Rectangle(getX(), getY() + 1, getWidth() * 0.2f, getHeight());
+            }
         }
 
     }
+
+    public ObjetsItems(float x, float y, Direction direction) {
+        this.imageObject = new Sprite(new Texture("images/Platform.png"));
+        setOriginX(getWidth() / 2);
+        setOriginY(getHeight() / 2);
+        setX(x);
+        setY(y);
+        this.direction = direction;
+        hitBox = new Rectangle(getX(), getY(), getWidth(), getHeight() - 6);
+    }
+
+    public ObjetsItems(float x, float y, boolean isLeft) {
+        this.imageObject = new Sprite(new Texture("images/SansSprite.png"));
+        this.imageObject.setRegion( 104 , 861 , 44, 57);
+        setX(x); setY(y);
+        setOriginX(getWidth()/2); setOriginY(getHeight()/2);
+        if (isLeft) {
+            generateUniqueYDestiny(BattleController.bonesRight);
+        } else {
+            generateUniqueYDestiny(bonesLeft);
+        }
+    }
+
+    private void generateUniqueYDestiny(ArrayList<ObjetsItems> bones) {
+        yDestinyGasterBlaster = Y_DESTINIES[random.nextInt(3)] ;
+        if (bones.isEmpty()) {
+            return;
+        }
+        while (bones.getFirst().yDestinyGasterBlaster == yDestinyGasterBlaster) {
+            yDestinyGasterBlaster = Y_DESTINIES[random.nextInt(3)];
+        }
+    }
+
 
     public void drawAttackerGasterBlaster(int valueX, float scale) {
         float heightIncrease = 0;
@@ -109,24 +158,62 @@ public class ObjetsItems extends Options{
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         shapeRenderer.setColor(new Color(1, 1, 1, opacity));
         float width = Gdx.graphics.getWidth();
-        shapeRenderer.rect(0, boxHeart.getY() + 13 - heightIncrease, width - imageObject.getOriginX(), 2 * heightIncrease);
-        if (CollisionListener.isCollided(heart, new Rectangle(0, boxHeart.getY() + 13 - heightIncrease, width - imageObject.getOriginX(), 2 * heightIncrease))) {
-            soulDamaged();
-            heart.setHp(heart.getHp() - 1.0f);
+
+        if (getAngle() == 90) {
+            shapeRenderer.rect(getX() + getWidth() ,getY() + getHeight()/2 - heightIncrease, width, 2 * heightIncrease);
+            if (CollisionListener.isCollided(heart, new Rectangle(getX() + getWidth() ,getY() + getHeight()/2 - heightIncrease, width, 2 * heightIncrease))) {
+                soulDamaged();
+                heart.setHp(Math.max(heart.getHp() - 1.0f, 0));
+            }
+        }
+        else {
+            shapeRenderer.rect(0,getY() + getHeight()/2 - heightIncrease, getX() - getWidth()/2, 2 * heightIncrease);
+            if (CollisionListener.isCollided(heart, new Rectangle(0,getY() + getHeight()/2 - heightIncrease, width, 2 * heightIncrease))) {
+                soulDamaged();
+                heart.setHp(Math.max(heart.getHp() - 1.0f, 0));
+            }
         }
         shapeRenderer.end();
     }
 
-    public void gasterBlasterAttack(float scale) {
+    public void gasterBlasterAttack(float scale, boolean isLeft) {
+        this.imageObject.setRegion( valuesX[index], 861 , 44, 57);
         if (valuesX[index] >= 149) {
             drawAttackerGasterBlaster(valuesX[index], scale);
         }
-        this.imageObject.setRegion( valuesX[index], 861 , 44, 57);
-        if (index < valuesX.length - 1) {
-            index ++;
+        if (heart.getHp() == 0) {
+            return;
         }
-        else {
-            index = valuesX.length - 14;
+        if (getY() == yDestinyGasterBlaster) {
+            seconds += Gdx.graphics.getDeltaTime();
+            if ( seconds < 2 && seconds > 0.4) {
+                if (index < valuesX.length - 1) {
+                    index ++;
+                }
+                else {
+                    index = valuesX.length - 14;
+                }
+            } else if (seconds > 2) {
+                index -= Math.max(index, 0);
+                if(index == 0) {
+                    if (isLeft) {
+                        setX(getX() - 15);
+                        if (getX() < 0 - getWidth()) {
+                            this.delete();
+                            bonesLeft.clear();
+                        }
+                    } else {
+                         setX(getX() + 15);
+                        if (getX() > Gdx.graphics.getWidth() + getWidth()) {
+                            this.delete();
+                            bonesRight.clear();
+                        }
+                    }
+                }
+
+            }
+        } else {
+            setY(Math.max(getY() - 25, yDestinyGasterBlaster));
         }
 
     }
@@ -143,6 +230,12 @@ public class ObjetsItems extends Options{
     @Override
     public float getHeight() {
         return this.imageObject.getRegionHeight();
+    }
+
+    public void drawPlatform() {
+        batch.begin();
+        batch.draw(imageObject, getX(), getY(), getOriginX(), getOriginY(), getWidth(), getHeight(), 1f, 1f, 0);
+        batch.end();
     }
 
     public void draw() {
@@ -165,6 +258,29 @@ public class ObjetsItems extends Options{
 
     public void drawGhosterBlaster(float angle, float scale) {
         batch.begin();
+        setAngle(angle);
+        batch.draw(imageObject, getX(), getY(), getOriginX(), getOriginY(), getWidth(), getHeight(), scale + .5f, scale + 1f, getAngle());
+        batch.end();
+    }
+
+    public float getXEdge() {
+        return getOriginX() + (getX() - getOriginX()) * (float)Math.cos(angle) - (getOriginY() - getOriginY()) * (float)Math.sin(angle);
+    }
+
+    public float getYEdge() {
+        return getOriginY() + (getOriginX() - getOriginX()) * (float)Math.sin(angle) + (getOriginY() - getOriginY()) * (float)Math.cos(angle);
+    }
+
+    public void rotateLookingHeart() {
+        float anglePE = (float) Math.atan2(getYEdge() - getOriginY(), getXEdge() - getOriginX());
+        float anglePT = (float) Math.atan2(heart.getY() - getOriginY(), heart.getX() - getOriginX());
+
+        angle = anglePT - anglePE;
+    }
+
+
+    public void drawRotating(float scale) {
+        batch.begin();
         batch.draw(imageObject, getX(), getY(), getOriginX(), getOriginY(), getWidth(), getHeight(), scale + .5f, scale, angle);
         batch.end();
     }
@@ -177,6 +293,31 @@ public class ObjetsItems extends Options{
 
     public void moveLeft() {
         setX(getX() - 7);
+        updateHitBox();
+    }
+
+    public void moveLeft2() {
+        setX(getX() - 5);
+        updateHitBox();
+    }
+
+    public void movePlatformLeft() {
+        setX(getX() - 4);
+        updateHitBox();
+    }
+
+    public void moveRight() {
+        setX(getX() + 7);
+        updateHitBox();
+    }
+
+    public void moveRight2() {
+        setX(getX() + 5);
+        updateHitBox();
+    }
+
+    public void movePlatformRight() {
+        setX(getX() + 4);
         updateHitBox();
     }
 
@@ -197,11 +338,6 @@ public class ObjetsItems extends Options{
 
     public void moveUpFast(float max) {
         setY(Math.min(getY() + 15 , max) );
-        updateHitBox();
-    }
-
-    public void moveRight() {
-        setX(getX() + 7);
         updateHitBox();
     }
 

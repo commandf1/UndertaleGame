@@ -6,17 +6,20 @@ project(":lwjgl3") {
     implementation "io.github.berstanio:gdx-svmhelper-backend-lwjgl3:$graalHelperVersion"
     implementation "io.github.berstanio:gdx-svmhelper-extension-box2d:$graalHelperVersion"
     implementation "io.github.berstanio:gdx-svmhelper-extension-bullet:$graalHelperVersion"
+    implementation "io.github.berstanio:gdx-svmhelper-extension-freetype:$graalHelperVersion"
+    implementation 'org.mongodb:mongodb-driver-sync:5.0.0'
+    implementation 'org.mongodb:mongodb-driver-reactivestreams:5.0.0'
   }
   graalvmNative {
     binaries {
-      main {
+      main(({
         imageName = appName
         mainClass = project.mainClassName
         requiredVersion = '23.0'
         buildArgs.add("-march=compatibility")
         jvmArgs.addAll("-Dfile.encoding=UTF8")
         sharedLibrary = false
-      }
+      } as String))
     }
   }
 

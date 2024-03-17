@@ -5,6 +5,9 @@ import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 
+import static com.game.BlackScreen.VH_HEIGHT;
+import static com.game.BlackScreen.VH_WIDTH;
+
 public class ItemOp extends Options {
     private final Rectangle hitBox;
 
@@ -14,12 +17,13 @@ public class ItemOp extends Options {
 
     public ItemOp(Texture image, SpriteBatch batch, float x, float y) {
         setX(x); setY(y);
+        setScale(VH_WIDTH / 80, VH_HEIGHT / 40);
         this.sprite = new Sprite(image);
         this.batch = batch;
         halfWidth = image.getWidth() / 2;
         height = image.getHeight();
         sprite.setRegion(0, 1, halfWidth - 3, image.getHeight() - 2);
-        hitBox =  new Rectangle(getX(), getY(), getWidth()* 0.2f, getHeight()* 0.2f);
+        hitBox =  new Rectangle(getX(), getY(), getWidth(), getHeight());
     }
 
     public Rectangle getHitBox() {
@@ -28,17 +32,17 @@ public class ItemOp extends Options {
 
     @Override
     public float getWidth() {
-        return this.sprite.getWidth();
+        return this.sprite.getWidth() * getScaleX();
     }
 
     @Override
     public float getHeight() {
-        return this.sprite.getHeight();
+        return this.sprite.getHeight() * getScaleY();
     }
 
     public void draw() {
         batch.begin();
-        batch.draw(sprite,  getX(), getY(), sprite.getWidth()  * 0.2f , sprite.getHeight() * 0.2f) ;
+        batch.draw(sprite,  getX(), getY(), getWidth() , getHeight() ) ;
         batch.end();
     }
 

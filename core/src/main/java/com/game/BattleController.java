@@ -1,19 +1,26 @@
 package com.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import listener.CollisionListener;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
+import static com.badlogic.gdx.math.MathUtils.random;
 import static com.game.BlackScreen.*;
-import static com.game.Sounds.alertSound;
-import static com.game.Sounds.soulDamaged;
+import static com.game.Direction.*;
+import static com.game.Events.optionSelected;
+import static com.game.Sounds.*;
+import static com.game.Undertale.batch;
 
 public class BattleController {
-    static int act = 1, nextAttack = 0;
-    static boolean canAdd = true;
+    static int act = 0, nextAttack = 0;
+    static boolean canAdd = true, isCanAddLeft = true, isCanAddRight = true;
 
+    static ArrayList<ObjetsItems> platforms = new ArrayList<>();
+
+    static ObjetsItems platformThatIsOver;
     static ArrayList<ObjetsItems> bonesLeft = new ArrayList<>();
     static ArrayList<ObjetsItems> bonesRight = new ArrayList<>();
 
@@ -21,46 +28,133 @@ public class BattleController {
 
     static ArrayList<ObjetsItems> bonesDown = new ArrayList<>();
 
+    private static boolean canThrowLeft = true, canThrowRight = true, canThrowDown = true, canThrowUp = true;
+
+    private static int direction = 2;
+
+    private static final Direction[] DIRECTIONS = {TOWARD, BACKWARD, UPWARD, DOWNWARD};
+    private static Direction dir;
+    public static int getDirection() {
+        return direction;
+    }
 
     static float secondsTime = 0, secondTimeBetweenTransitions = 0;
+
+    static void throwHeart(int speed) {
+        switch (direction) {
+            case 0 -> {
+                if (heart.getY() == boxHeart.getY() + boxHeart.getHeight() - heart.getSprite().getRegionHeight() - 15) {
+                    canThrowUp = false;
+                }
+                if ( canThrowUp ) {
+                    heart.setY(Math.min(heart.getY() + speed, boxHeart.getY() + boxHeart.getHeight() - heart.getSprite().getRegionHeight() - 15) );
+                }
+            }
+            case 1 -> {
+                if (heart.getX() == boxHeart.getX() + boxHeart.getWidth() - heart.getSprite().getRegionWidth() - 15) {
+                    canThrowRight = false;
+                }
+                if ( canThrowRight ) {
+                    heart.setX(Math.min(heart.getX() + speed, boxHeart.getX() + boxHeart.getWidth() - heart.getSprite().getRegionWidth() - 15));
+                }
+            }
+            case 2 ->
+            {
+                if (heart.getY() == boxHeart.getY() + heart.getSprite().getRegionHeight()) {
+                    canThrowDown = false;
+                }
+                if ( canThrowDown ) {
+                    heart.setY(Math.max(heart.getY() - speed, boxHeart.getY() + heart.getSprite().getRegionHeight()));
+                }
+            }
+            case 3 -> {
+                if (heart.getX() == boxHeart.getX() + heart.getSprite().getRegionWidth()) {
+                    canThrowLeft = false;
+                }
+                if ( canThrowLeft ) {
+                    heart.setX(Math.max(heart.getX() - speed, boxHeart.getX() + heart.getSprite().getRegionWidth()));
+                }
+            }
+        }
+    }
 
 
     static void generateBonesTab(int direction)
     {
         switch (direction) {
             case 0:
-                bonesUp.add(new ObjetsItems(3, boxHeart.getX(), boxHeart.getY() + boxHeart.getHeight()));
+                bonesUp.add(new ObjetsItems(3, boxHeart.getX(), boxHeart.getY() + boxHeart.getHeight(), DOWNWARD));
                 break;
             case 1:
-                bonesRight.add(new ObjetsItems(4, boxHeart.getX() + boxHeart.getWidth(), boxHeart.getY()));
+                bonesRight.add(new ObjetsItems(4, boxHeart.getX() + boxHeart.getWidth(), boxHeart.getY(), BACKWARD));
                 break;
             case 2:
-                bonesDown.add(new ObjetsItems(3, boxHeart.getX() , boxHeart.getY() - 204));
+                bonesDown.add(new ObjetsItems(3, boxHeart.getX() , boxHeart.getY() - 204, UPWARD));
                 break;
             case 3:
-                bonesLeft.add(new ObjetsItems(4, boxHeart.getX() - 250, boxHeart.getY()));
+                bonesLeft.add(new ObjetsItems(4, boxHeart.getX() - 250, boxHeart.getY(), TOWARD));
                 break;
         }
     }
 
     static void bonesTab(boolean isGeneratedRight, boolean isGeneratedLeft, boolean isGeneratedDown, boolean isGeneratedUp, float extension) {
-        if (boxHeart.getX() == boxHeart.X_POS_MAX_SQUARE && boxHeart.getWidth() == boxHeart.MAX_HEIGHT_SQUARE) {
+        if (boxHeart.getWidth() == boxHeart.MAX_HEIGHT_SQUARE) {
             secondTimeBetweenTransitions += Gdx.graphics.getDeltaTime();
-            if (secondTimeBetweenTransitions < 1 ) {
+            if (secondTimeBetweenTransitions < 0.8 ) { // 0.8
                 canAdd = true;
                 if (isGeneratedRight) {
-                    new AlertBox(extension, boxHeart.getHeight() - 20, boxHeart.getX() + boxHeart.getWidth() - 10 - extension, boxHeart.getY() + 10).draw(batch, 1);
+                    heart.setAngle(90);
+                    direction = 1;
+                    throwHeart(20);
+
+                    new AlertBox(extension, boxHeart.getHeight() - VH_HEIGHT*3f, boxHeart.getX() + boxHeart.getWidth() - VH_WIDTH * .7f - extension, boxHeart.getY() + VH_HEIGHT * 1.5f).draw(batch, 1);
                 }
                 if (isGeneratedLeft) {
-                    new AlertBox( extension, boxHeart.getHeight() - 20, boxHeart.getX() + 10, boxHeart.getY() + 10).draw(batch, 1);
+                    heart.setAngle(-90);
+                    direction = 3;
+                    throwHeart(20);
+
+                    new AlertBox( extension, boxHeart.getHeight() - VH_HEIGHT*3f, boxHeart.getX() + VH_WIDTH * .7f, boxHeart.getY() + VH_HEIGHT * 1.5f).draw(batch, 1);
                 }
                 if (isGeneratedUp) {
-                    new AlertBox(boxHeart.getWidth() - 20, extension - 10, boxHeart.getX() + 10, boxHeart.getY() + boxHeart.getHeight() - extension).draw(batch, 1);
+                    heart.setAngle(180);
+                    direction = 0;
+                    throwHeart(20);
+
+                    new AlertBox(boxHeart.getWidth() - VH_HEIGHT*2.5f, extension - VH_WIDTH * .7f, boxHeart.getX() + VH_WIDTH * .7f, boxHeart.getY() + boxHeart.getHeight() - extension).draw(batch, 1);
                 }
                 if (isGeneratedDown) {
-                    new AlertBox(boxHeart.getWidth() - 20, extension - 10, boxHeart.getX() + 10, boxHeart.getY() + 10).draw(batch, 1);
+                    heart.setAngle(0);
+                    direction = 2;
+                    throwHeart(20);
+
+                    new AlertBox(boxHeart.getWidth() - VH_HEIGHT*2.5f , extension - VH_WIDTH * .7f, boxHeart.getX() + VH_WIDTH * .7f, boxHeart.getY() + VH_WIDTH * .7f).draw(batch, 1);
                 }
-            } else if (secondTimeBetweenTransitions > 1) {
+                switch (direction) {
+                    case 0 -> {
+                        if (sans.isAnimationFinished() && sans.isCanAnimate()) {
+                            sans.animationUpwardHand();
+                        }
+                    }
+                    case 1 -> {
+                        if (sans.isAnimationFinished() && sans.isCanAnimate()) {
+                            sans.animationRightHand();
+                        }
+                    }
+                    case 2 -> {
+                        if (sans.isAnimationFinished() && sans.isCanAnimate()) {
+                            sans.animationDownwardHand();
+                        }
+                    }
+                    case 3 -> {
+                        if (sans.isAnimationFinished() && sans.isCanAnimate()) {
+                            sans.animationLeftHand();
+                        }
+                    }
+                }
+            } else if (secondTimeBetweenTransitions > 0.8) {
+                canThrowLeft = canThrowUp = canThrowRight = canThrowDown = true;
+
                 if (isGeneratedRight) {
                     if (bonesRight.isEmpty() && canAdd) {
                         alertSound();
@@ -69,6 +163,7 @@ public class BattleController {
                     moveBonesLeftFast(extension);
                 }
                 if (isGeneratedLeft) {
+
                     if (bonesLeft.isEmpty() && canAdd) {
                         alertSound();
                         generateBonesTab(3);
@@ -76,6 +171,7 @@ public class BattleController {
                     moveBonesRightFast();
                 }
                 if (isGeneratedUp) {
+
                     if (bonesUp.isEmpty() && canAdd) {
                         alertSound();
                         generateBonesTab(0);
@@ -90,16 +186,26 @@ public class BattleController {
                     moveBonesUpFast();
                 }
                 canAdd = false;
+
             }
         }
     }
 
     static void setConfigTurnPlayer() {
         heart.isTurn = true;
-        heart.setPositionFightOp();
+        switch (optionSelected) {
+            case 1 -> heart.setPositionFightOp();
+            case 2 -> heart.setPositionActOp();
+            case 3 -> heart.setPositionItemOp();
+            case 4 -> heart.setPositionMercyOp();
+        }
         heart.setColorRed();
         secondTimeBetweenTransitions = secondsTime = 0;
-        act ++;
+        score += act * 100;
+        if ( heart.getHp() > 0 ) {
+            score += (int) (heart.getHp()/90 * 100);
+        }
+        optionSelected = 0;
         deleteBones();
     }
 
@@ -109,10 +215,10 @@ public class BattleController {
         if ( secondTimeBetweenTransitions < 0.7) {
             canAdd = true;
         } else if (canAdd && secondTimeBetweenTransitions > 0.7) {
-            bonesLeft.add(new ObjetsItems(1,boxHeart.getX() + boxHeart.getWidth(), boxHeart.getY() - 20));
-            bonesLeft.add(new ObjetsItems(2,boxHeart.getX() + boxHeart.getWidth(), boxHeart.getY() + boxHeart.getHeight()/2 - 30));
-            bonesRight.add(new ObjetsItems(2, boxHeart.getX() - 20 , boxHeart.getY() + boxHeart.getHeight()/2 - 30));
-            bonesRight.add(new ObjetsItems(1, boxHeart.getX() - 20 , boxHeart.getY() - 20));
+            bonesLeft.add(new ObjetsItems(1,boxHeart.getX() + boxHeart.getWidth(), boxHeart.getY() - 20, TOWARD));
+            bonesLeft.add(new ObjetsItems(2,boxHeart.getX() + boxHeart.getWidth(), boxHeart.getY() + boxHeart.getHeight()/2 - 30, TOWARD));
+            bonesRight.add(new ObjetsItems(2, boxHeart.getX() - 20 , boxHeart.getY() + boxHeart.getHeight()/2 - 30, BACKWARD));
+            bonesRight.add(new ObjetsItems(1, boxHeart.getX() - 20 , boxHeart.getY() - 20, BACKWARD));
             canAdd = false;
             secondTimeBetweenTransitions = 0;
         }
@@ -121,70 +227,84 @@ public class BattleController {
         if (secondsTime > 8) {
             setConfigTurnPlayer();
         }
-
     }
 
-    static void gasterBlasterAttack(float scale) {
-        if ( !bonesLeft.isEmpty())
-        {
-            for (ObjetsItems gasterBlaster: bonesLeft) {
-                gasterBlaster.gasterBlasterAttack(scale);
-            }
+    static void generateBones2() {
+        secondsTime+= Gdx.graphics.getDeltaTime();
+        secondTimeBetweenTransitions += Gdx.graphics.getDeltaTime();
+        if ( secondTimeBetweenTransitions < 0.6) {
+            canAdd = true;
+        } else if (canAdd && secondTimeBetweenTransitions > 0.6) {
+            bonesLeft.add(new ObjetsItems(2,boxHeart.getX() + boxHeart.getWidth(), boxHeart.getY() + boxHeart.getHeight()/2 - VH_HEIGHT * 7f, BACKWARD));
+            bonesLeft.add(new ObjetsItems(1, boxHeart.getX() - 20 , boxHeart.getY() - VH_HEIGHT * 0.5f, TOWARD));
+            canAdd = false;
+            secondTimeBetweenTransitions = 0;
         }
-        if ( !bonesRight.isEmpty())
-        {
-            for (ObjetsItems gasterBlaster: bonesRight) {
-                gasterBlaster.gasterBlasterAttack(scale);
-            }
+        moveBones2();
+
+        if (secondsTime > 8) {
+            setConfigTurnPlayer();
+        }
+    }
+
+    static void gastersBlasterAttack(float scale, boolean isLeft) {
+        if (isLeft && !bonesLeft.isEmpty()) {
+            bonesLeft.getFirst().gasterBlasterAttack(scale, true);
+            return;
+        }
+        if (!bonesRight.isEmpty()) {
+            bonesRight.getFirst().gasterBlasterAttack(scale, false);
         }
     }
 
     static void generateGastersBlaster() {
-        secondsTime+= Gdx.graphics.getDeltaTime();
-        secondTimeBetweenTransitions += Gdx.graphics.getDeltaTime();
-        if ( secondTimeBetweenTransitions < 0.7) {
-            canAdd = true;
-        } else if (canAdd && secondTimeBetweenTransitions > 0.7) {
-            bonesLeft.add(new ObjetsItems(5,boxHeart.getX() + boxHeart.getWidth() + 40, boxHeart.getY()-20));
-            canAdd = false;
+        secondsTime += Gdx.graphics.getDeltaTime();
+        generatePlatform();
+        if ( secondsTime < 0.7) {
+            isCanAddRight = isCanAddLeft = true;
+        } else if (secondsTime > 0.7) {
+            if (bonesLeft.isEmpty()) {
+                bonesLeft.add(new ObjetsItems(boxHeart.getX()/2 , Gdx.graphics.getHeight(), true));
+                isCanAddLeft = false;
+                gasterBlasterAttackSound();
+            }
+            if (bonesRight.isEmpty()) {
+                bonesRight.add(new ObjetsItems(boxHeart.getX() + boxHeart.getWidth() + boxHeart.getX()/2, Gdx.graphics.getHeight(), false));
+                isCanAddRight = false;
+            }
         }
-        if (!bonesLeft.isEmpty() ) {
-            gasterBlasterAttack((float) 4.0);
-        }
+        gastersBlasterAttack(1f, true);
+        gastersBlasterAttack(1f, false);
+
+
         if (secondsTime > 20) {
             setConfigTurnPlayer();
             deleteBones();
-            secondTimeBetweenTransitions = 0;
+            canAdd = false;
+            secondTimeBetweenTransitions = secondsTime = 0;
         }
 
     }
-
-    public static void deleteBones() {
-        Iterator<ObjetsItems> iteratorLeft = bonesLeft.iterator();
-        Iterator<ObjetsItems> iteratorRight = bonesRight.iterator();
-        Iterator<ObjetsItems> iteratorUp = bonesUp.iterator();
-        Iterator<ObjetsItems> iteratorDown = bonesUp.iterator();
-
-        while (iteratorLeft.hasNext() && iteratorRight.hasNext()) {
+    public static void clearList(ArrayList<ObjetsItems> bones) {
+        Iterator<ObjetsItems> iteratorLeft = bones.iterator();
+        while (iteratorLeft.hasNext()) {
             ObjetsItems bone = iteratorLeft.next();
             bone.delete();
             iteratorLeft.remove();
         }
-        while (iteratorRight.hasNext()) {
-            ObjetsItems bone = iteratorRight.next();
-            bone.delete();
-            iteratorRight.remove();
-        }
-        while (iteratorUp.hasNext()) {
-            ObjetsItems bone = iteratorUp.next();
-            bone.delete();
-            iteratorUp.remove();
-        }
-        while (iteratorDown.hasNext()) {
-            ObjetsItems bone = iteratorDown.next();
-            bone.delete();
-            iteratorDown.remove();
-        }
+    }
+
+    public static void deleteBones() {
+        clearList(bonesLeft);
+        clearList(bonesRight);
+        clearList(bonesUp);
+        clearList(bonesDown);
+        clearList(platforms);
+        nextAttack = 0;
+        platformThatIsOver = null;
+        secondsTime = 0;
+        secondTimeBetweenTransitions = 0;
+        heart.setStatic_y(0);
     }
 
 
@@ -214,26 +334,62 @@ public class BattleController {
 
     public static void drawGasterBlaster(float scale) {
         for(ObjetsItems bone : bonesLeft) {
-            bone.drawGhosterBlaster(-90, scale);
+            bone.drawGhosterBlaster(90, scale);
         }
         for(ObjetsItems bone : bonesRight ) {
-            bone.drawGhosterBlaster(90, scale);
+            bone.drawGhosterBlaster(-90, scale);
         }
     }
 
     static void moveBonesLeft() {
         for (Iterator<ObjetsItems> iterator = bonesLeft.iterator(); iterator.hasNext();) {
             ObjetsItems bone = iterator.next();
+            if (bone.getDirection() != TOWARD ) {
+                continue;
+            }
+
             bone.moveLeft();
             if (CollisionListener.isCollided(heart, bone)) {
                 soulDamaged();
-                heart.setHp(heart.getHp() - 0.1f);
+                heart.setHp(Math.max(heart.getHp() - 0.5f, 0));
             }
             if (bone.getX() < boxHeart.getX() - 30) {
                 bone.delete();
                 iterator.remove();
             }
         }
+
+
+    }
+
+    static void moveBones2() {
+        for (Iterator<ObjetsItems> iterator = bonesLeft.iterator(); iterator.hasNext();) {
+            ObjetsItems bone = iterator.next();
+            if (bone.getDirection() == TOWARD ) {
+                bone.moveRight2();
+                if (CollisionListener.isCollided(heart, bone)) {
+                    soulDamaged();
+                    heart.setHp(Math.max(heart.getHp() - 0.5f, 0));
+                }
+                if (bone.getX() > boxHeart.getX() + boxHeart.getWidth() + 30) {
+                    bone.delete();
+                    iterator.remove();
+                }
+            }
+            if (bone.getDirection() == BACKWARD ) {
+                bone.moveLeft2();
+                if (CollisionListener.isCollided(heart, bone)) {
+                    soulDamaged();
+                    heart.setHp(Math.max(heart.getHp() - 0.5f, 0));
+                }
+                if (bone.getX() < boxHeart.getX() - 30) {
+                    bone.delete();
+                    iterator.remove();
+                }
+            }
+        }
+
+
     }
 
     static void moveBonesLeftFast(float extension) {
@@ -241,10 +397,10 @@ public class BattleController {
             ObjetsItems bone = iterator.next();
             if (CollisionListener.isCollided(heart, bone)) {
                 soulDamaged();
-                heart.setHp(heart.getHp() - 5f);
+                heart.setHp(Math.max(heart.getHp() - 0.5f, 0));
             }
-            if(bone.getX() > boxHeart.getX() + boxHeart.getWidth() - 10 - extension && !bone.getSense()) {
-                bone.moveLeftFast(boxHeart.getX() + boxHeart.getWidth() - 10 - extension);
+            if(bone.getX() > boxHeart.getX() + boxHeart.getWidth() - 20 - extension && !bone.getSense()) {
+                bone.moveLeftFast(boxHeart.getX() + boxHeart.getWidth() - 20 - extension);
             } else {
                 bone.setIsReverseSense(true);
             }
@@ -256,19 +412,25 @@ public class BattleController {
                     if (bonesDown.isEmpty() && bonesUp.isEmpty() && bonesLeft.isEmpty() && bonesRight.isEmpty()) {
                         secondTimeBetweenTransitions = 0;
                         nextAttack ++;
+                        dir = null;
                     }
                 }
             }
         }
+
+
     }
 
     static void moveBonesRight() {
         for (Iterator<ObjetsItems> iterator = bonesRight.iterator(); iterator.hasNext();) {
             ObjetsItems bone = iterator.next();
+            if ( bone.getDirection() != BACKWARD ) {
+                continue;
+            }
             bone.moveRight();
             if (CollisionListener.isCollided(heart, bone)) {
                 soulDamaged();
-                heart.setHp(heart.getHp() - 0.1f);
+                heart.setHp(Math.max(heart.getHp() - 0.5f, 0));
             }
             if (bone.getX() > boxHeart.getX() + boxHeart.getWidth() + 30) {
                 bone.delete();
@@ -282,7 +444,8 @@ public class BattleController {
             ObjetsItems bone = iterator.next();
             if (CollisionListener.isCollided(heart, bone)) {
                 soulDamaged();
-                heart.setHp(heart.getHp() - 5f);
+                heart.setHp(Math.max(heart.getHp() - 0.5f, 0));
+
             }
             if(bone.getX() < boxHeart.getX() - 40 - bone.getWidth() && !bone.getSense()) {
                 bone.moveRightFast(boxHeart.getX() - 40 - bone.getWidth());
@@ -297,10 +460,12 @@ public class BattleController {
                     if (bonesDown.isEmpty() && bonesUp.isEmpty() && bonesLeft.isEmpty() && bonesRight.isEmpty()) {
                         secondTimeBetweenTransitions = 0;
                         nextAttack ++;
+                        dir = null;
                     }
                 }
             }
         }
+
     }
 
     static void moveBonesDownFast(float extension) {
@@ -308,7 +473,8 @@ public class BattleController {
             ObjetsItems bone = iterator.next();
             if (CollisionListener.isCollided(heart, bone)) {
                 soulDamaged();
-                heart.setHp(heart.getHp() - 5f);
+                heart.setHp(Math.max(heart.getHp() - 0.5f, 0));
+
             }
             if(bone.getY() > boxHeart.getY() + boxHeart.getHeight() - 10 - bone.getHeight() && !bone.getSense()) {
                 bone.moveDownFast(boxHeart.getY() + boxHeart.getHeight() - 10 - bone.getHeight());
@@ -323,18 +489,92 @@ public class BattleController {
                     if (bonesDown.isEmpty() && bonesUp.isEmpty() && bonesLeft.isEmpty() && bonesRight.isEmpty()) {
                         secondTimeBetweenTransitions = 0;
                         nextAttack ++;
+                        dir = null;
                     }
                 }
             }
         }
+
+    }
+
+    static void generatePlatform() {
+        if ( secondTimeBetweenTransitions > 0.8){
+            secondTimeBetweenTransitions = 0;
+            canAdd = true;
+        }
+        if (secondTimeBetweenTransitions == 0 && canAdd) {
+            canAdd = false;
+            platforms.add(new ObjetsItems(boxHeart.getX() + boxHeart.getWidth(), boxHeart.getY() + boxHeart.getHeight()/2 - 60, BACKWARD));
+            platforms.add(new ObjetsItems(boxHeart.getX() - 20, boxHeart.getY() + boxHeart.getHeight() - 100, TOWARD));
+        }
+        secondTimeBetweenTransitions += Gdx.graphics.getDeltaTime();
+    }
+
+    static void drawPlatforms() {
+        Iterator<ObjetsItems> iterator = platforms.iterator();
+        while (iterator.hasNext()) {
+            ObjetsItems platform = iterator.next();
+            platform.drawPlatform();
+
+            if (platform.getDirection() == TOWARD) {
+
+                if (CollisionListener.isCollided(heart, platform.getHitBox()) && platform.getY() + platform.getHeight()/2 < heart.getY() - heart.getHeight()/2 && platformThatIsOver == null) {
+                    platformThatIsOver = platform;
+                }
+
+                if (platform == platformThatIsOver) {
+                    if (CollisionListener.isCollided(heart, platform.getHitBox()) && platform.getY() + platform.getHeight()/2 < heart.getY() - heart.getHeight()/2 && heart.getYStatic() == 0) {
+                        heart.setStatic_y(platform.getY() - heart.getHeight()/2 - 4);
+                    } else if (!CollisionListener.isCollided(heart, platform.getHitBox()) ){
+                        platformThatIsOver = null;
+                        heart.setStatic_y(0);
+                    }
+                    if (!Gdx.input.isKeyPressed(Input.Keys.LEFT)){
+                        heart.setX(Math.min(heart.getX() + 4, boxHeart.getX() + boxHeart.getWidth() - heart.getSprite().getRegionWidth() - 15 ));
+                    }
+                }
+
+
+                platform.movePlatformRight();
+                if (platform.getX() > boxHeart.getWidth() + boxHeart.getX() + platform.getWidth() /*boxHeart.getX() + boxHeart.getWidth() + platform.getWidth()*/) {
+                    platform.delete();
+                    iterator.remove();
+                }
+            }
+            else {
+                if (CollisionListener.isCollided(heart, platform.getHitBox()) && platform.getY() + platform.getHeight()/2 < heart.getY() - heart.getHeight()/2 && platformThatIsOver == null) {
+                    platformThatIsOver = platform;
+                }
+
+                if (platform == platformThatIsOver) {
+                    if (CollisionListener.isCollided(heart, platform.getHitBox()) && platform.getY() + platform.getHeight()/2 < heart.getY() - heart.getHeight()/2 && heart.getYStatic() == 0) {
+                        heart.setStatic_y(platform.getY() - heart.getHeight()/2 - 4);
+                    } else if (!CollisionListener.isCollided(heart, platform.getHitBox())) {
+                        platformThatIsOver = null;
+                        heart.setStatic_y(0);
+                    }
+                    if (!Gdx.input.isKeyPressed(Input.Keys.RIGHT)){
+                        heart.setX(Math.max(heart.getX() - 4, boxHeart.getX() + heart.getSprite().getRegionWidth()));
+                    }
+                }
+
+                platform.movePlatformLeft();
+                if (platform.getX() < boxHeart.getX() - platform.getWidth() ) {
+                    platform.delete();
+                    iterator.remove();
+                }
+            }
+
+        }
     }
 
     static void moveBonesUpFast() {
-        for (Iterator<ObjetsItems> iterator = bonesDown.iterator(); iterator.hasNext();) {
+        Iterator<ObjetsItems> iterator = bonesDown.iterator();
+        while (iterator.hasNext()) {
             ObjetsItems bone = iterator.next();
             if (CollisionListener.isCollided(heart, bone)) {
                 soulDamaged();
-                heart.setHp(heart.getHp() - 5f);
+                heart.setHp(Math.max(heart.getHp() - 0.5f, 0));
             }
             if(bone.getY() < boxHeart.getY() - bone.getHeight() && !bone.getSense()) {
                 bone.moveUpFast(boxHeart.getY() - bone.getHeight());
@@ -344,73 +584,90 @@ public class BattleController {
             if (bone.getY() > 0 && bone.getSense()) {
                 bone.moveDownFast(0);
                 if (bone.getY() <= 0) {
-                    bone.delete();
                     iterator.remove();
+                    bone.delete();
                     if (bonesDown.isEmpty() && bonesUp.isEmpty() && bonesLeft.isEmpty() && bonesRight.isEmpty()) {
                         secondTimeBetweenTransitions = 0;
                         nextAttack ++;
+                        dir = null;
                     }
                 }
             }
         }
+
     }
+
 
     static void generateAct() {
         switch (act) {
-            case 0:
-            break;
-            case 1:
+            case 1 -> {
+                heart.setOption(3);
+                boxHeart.changeDimensionsMinSquare();
+                drawBonesTab();
+                drawBlackGround();
+                if (nextAttack != 12) {
+                    if (dir == null) {
+                        dir = DIRECTIONS[random.nextInt(4)];
+                    }
+                    switch (dir) {
+                        case UPWARD -> bonesTab(false, false, false, true, boxHeart.getHeight() / 3 - 20);
+                        case TOWARD -> bonesTab(true, false, false, false, boxHeart.getHeight() / 3 - 20);
+                        case DOWNWARD -> bonesTab(false, false, true, false, boxHeart.getHeight() / 3 - 20);
+                        case BACKWARD -> bonesTab(false, true, false, false, boxHeart.getHeight() / 3 - 20);
+                    }
+                } else  {
+                    nextAttack = 0;
+                    heart.setAngle(0);
+                    setConfigTurnPlayer();
+                }
+            }
+            case 2-> {
                 heart.setOption(2);
                 boxHeart.changeDimensionsMin();
                 generateBones();
                 drawBones();
                 drawBlackGround();
-                break;
-            case 2:
-                heart.setOption(1);
+            }
+
+            case 3-> {
+                heart.setOption(3);
                 boxHeart.changeDimensionsMinSquare();
                 drawBonesTab();
                 drawBlackGround();
+
                 switch (nextAttack) {
-                    case 0:
-                        bonesTab(true, false, false, false, boxHeart.getHeight()/2 - 20);
-                        break;
-                    case 1:
-                        bonesTab(false, true, false, false, boxHeart.getHeight()/2 - 20);
-                        break;
-                    case 2:
-                        bonesTab(false, false, true, false, boxHeart.getHeight()/2 - 20);
-                        break;
-                    case 3:
-                        bonesTab(false, false
-                            , false, true, boxHeart.getHeight()/2 - 20);
-                        break;
-                    case 4:
-                        bonesTab(true, false, true, false, boxHeart.getHeight()/2 - 20);
-                        break;
-                    case 5:
-                        bonesTab(false, true, false, true, boxHeart.getHeight()/2 - 20);
-                        break;
-                    case 6:
-                        bonesTab(false, true, true, false, boxHeart.getHeight()/2 - 20);
-                        break;
-                    case 7:
-                        bonesTab(false, true, true, true, boxHeart.getHeight()/2 - 20);
-                        break;
-                    case 8:
-                        bonesTab(true, true, true, true, boxHeart.getHeight()/2 - 20);
-                        break;
-                    case 9:
-                        nextAttack = 0;
+                    case 0 -> bonesTab(true, false, false, false, boxHeart.getHeight() / 2 - 20);
+                    case 1 -> bonesTab(false, true, false, false, boxHeart.getHeight() / 2 - 20);
+                    case 2 -> bonesTab(false, false, true, false, boxHeart.getHeight() / 2 - 20);
+                    case 3 -> bonesTab(false, false,false, true, boxHeart.getHeight() / 2 - 20);
+                    case 4 -> bonesTab(true, false, true, false, boxHeart.getHeight() / 2 - 20);
+                    case 5 -> bonesTab(false, true, false, true, boxHeart.getHeight() / 2 - 20);
+                    case 6 -> bonesTab(false, true, true, false, boxHeart.getHeight() / 2 - 20);
+                    case 7 -> bonesTab(false, true, true, true, boxHeart.getHeight() / 2 - 20);
+                    case 8 -> bonesTab(true, true, true, true, boxHeart.getHeight() / 2 - 20);
+                    case 9 -> {nextAttack = 0;
                         setConfigTurnPlayer();
-                        break;
+                    }
                 }
-                break;
-            case 3:
+            }
+            case 4 -> {
                 boxHeart.changeDimensionsMin();
                 heart.setOption(2);
+                drawPlatforms();
+                drawBlackGround();
                 generateGastersBlaster();
-                drawGasterBlaster(4f);
+                drawGasterBlaster(2f);
+            }
+            case 5 -> {
+                heart.setOption(2);
+                boxHeart.changeDimensionsMin();
+                generateBones2();
+                drawBones();
+                drawBlackGround();
+            }
+            case 6 -> {
+                updateGameOnHeartWon();
+            }
 
         }
     }

@@ -6,21 +6,22 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
+import static com.game.BlackScreen.VH_HEIGHT;
+import static com.game.Undertale.shapeRenderer;
+import static com.game.BlackScreen.VH_WIDTH;
+
 public class BoxHeart extends Actor {
 
     public int mode = 0;
 
-    public float MAX_WIDTH = 1000,  MAX_HEIGHT_SQUARE = 300, X_POS_MAX_SQUARE = 550, X_POS_MIN = 200, X_POS_INTERMEDIATE = 350, MIN_WIDTH = 700;
+    public float MAX_WIDTH = VH_WIDTH * 90,  MAX_HEIGHT_SQUARE = VH_WIDTH * 20, MIN_WIDTH = VH_WIDTH * 70;
     private final Color borderColor = Color.WHITE;
-        private final ShapeRenderer shapeRenderer;
-
         public BoxHeart(float width, float height) {
             setWidth(width);
             setHeight(height);
-            setX(getX() + X_POS_MIN);
-            float y_POS_MIN = 200;
-            setY(getY() + y_POS_MIN);
-            shapeRenderer = new ShapeRenderer();
+            setOrigin(getWidth() / 2, getHeight() / 2);
+            setX(VH_WIDTH * 5);
+            setY(VH_HEIGHT * 30);
         }
 
         @Override
@@ -34,9 +35,11 @@ public class BoxHeart extends Actor {
 
         public void changeDimensionsMinSquare() {
             if ( mode == 0  || mode == 1) {
-                setWidth(Math.max(getWidth() - 10, MAX_HEIGHT_SQUARE));
-                setX(Math.min(getX() + 5 , X_POS_MAX_SQUARE));
-                if (getX() == X_POS_MAX_SQUARE && getWidth() == MAX_HEIGHT_SQUARE) {
+                float prevWidth = getWidth();
+                setWidth(Math.max(getWidth() - 20, MAX_HEIGHT_SQUARE));
+                float deltaX = (prevWidth - getWidth()) / 2;
+                setX(getX() + deltaX);
+                if (getWidth() == MAX_HEIGHT_SQUARE) {
                     mode = 2;
                 }
             }
@@ -44,27 +47,34 @@ public class BoxHeart extends Actor {
         }
 
     public void changeDimensionsMax() {
-        if( mode == 2 || mode == 1) {
-            setWidth(Math.min(getWidth() + 10, MAX_WIDTH));
-            setX(Math.max(getX() - 5 , X_POS_MIN));
-            if (getX() == X_POS_MIN && getWidth() == MAX_WIDTH) {
+        if (mode == 2 || mode == 1) {
+            float prevWidth = getWidth();
+            setWidth(Math.min(getWidth() + 20, MAX_WIDTH));
+            float deltaX = (getWidth() - prevWidth) / 2;
+            setX(getX() - deltaX);
+            if (getWidth() == MAX_WIDTH) {
                 mode = 0;
             }
         }
     }
 
+
     public void changeDimensionsMin() {
         if(mode == 0) {
-                setWidth(Math.max( getWidth() - 15, MIN_WIDTH));
-                setX(Math.min( getX() + 9, X_POS_INTERMEDIATE));
-                if (getX() == X_POS_INTERMEDIATE && getWidth() == MIN_WIDTH) {
+            float prevWidth = getWidth();
+            setWidth(Math.max(getWidth() - 20, MIN_WIDTH));
+            float deltaX = (prevWidth - getWidth()) / 2;
+            setX(getX() + deltaX);
+            if (getWidth() == MIN_WIDTH) {
                     mode = 1;
                 }
             }
             if (mode == 2) {
-                setWidth(Math.min( getWidth() + 15, MIN_WIDTH));
-                setX(Math.max( getX() - 9, X_POS_INTERMEDIATE));
-                if (getX() == X_POS_INTERMEDIATE && getWidth() == MIN_WIDTH) {
+                float prevWidth = getWidth();
+                setWidth(Math.min(getWidth() + 20, MIN_WIDTH));
+                float deltaX = (getWidth() - prevWidth) / 2;
+                setX(getX() - deltaX);
+                if (getWidth() == MIN_WIDTH) {
                     mode = 1;
                 }
             }

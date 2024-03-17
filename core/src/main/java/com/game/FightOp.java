@@ -8,6 +8,9 @@ import com.badlogic.gdx.scenes.scene2d.Actor;
 
 import java.awt.*;
 
+import static com.game.BlackScreen.VH_HEIGHT;
+import static com.game.BlackScreen.VH_WIDTH;
+
 public class FightOp extends Actor {
 
     private final Rectangle hitBox;
@@ -23,11 +26,11 @@ public class FightOp extends Actor {
         this.sprite = new Sprite(image);
         this.batch = batch;
         halfWidth = image.getWidth() / 2;
+        setScale(VH_WIDTH / 80, VH_HEIGHT / 40);
 
         setX(x); setY(y);
         sprite.setRegion(0, -1, halfWidth - 60, height + 1);
-        setHeight(image.getHeight());
-        hitBox = new Rectangle(getX(), getY(), getWidth() * 0.2f, getHeight()* 0.2f);
+        hitBox = new Rectangle(getX(), getY(), getWidth() , getHeight());
     }
 
     public Rectangle getHitBox() {
@@ -36,18 +39,17 @@ public class FightOp extends Actor {
 
     @Override
     public float getWidth() {
-        return this.sprite.getWidth();
+        return this.sprite.getWidth() * getScaleX();
     }
 
     @Override
     public float getHeight() {
-        return this.sprite.getHeight();
+        return this.sprite.getHeight() * getScaleY();
     }
 
     public void draw() {
         batch.begin();
-        float scale = 0.20f;
-        batch.draw(sprite,  getX(), getY(), sprite.getWidth() * scale  , sprite.getHeight() * scale ) ;
+        batch.draw(sprite,  getX(), getY(), getWidth()  , getHeight() ) ;
         batch.end();
     }
 

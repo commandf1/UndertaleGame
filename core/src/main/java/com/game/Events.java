@@ -3,90 +3,335 @@ package com.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import listener.CollisionListener;
+import java.util.ArrayList;
+import static com.game.BattleController.act;
 import static com.game.BlackScreen.*;
-import static com.game.Sounds.selectSound;
+import static com.game.FabricElements.createLabelMessage;
+import static com.game.Heart.iteratorItems;
+import static com.game.Sounds.*;
+import static com.game.StateMessage.*;
+import static com.game.Undertale.stage;
 
 
 public class Events {
+    private static int i = 0, iteratorDeleted = 0;
 
-    static int optionSelected = 0;
-    public static boolean canSelect = true;
+    public static final ArrayList<LabelMessage> items = new ArrayList<>(4);
 
-    public static void createTarget() {
-        objectItems.add(new ObjetsItems(0, 260, 400));
+    public static int optionSelected = 0;
+    public static LabelMessage labelSans;
+    public static boolean canSelect = true, canAddItems;
+
+    public static boolean isSparing = false;
+
+    private static boolean isWritingMessage = false;
+
+    public static ArrayList<LabelMessage> getItems() {
+        return items;
     }
 
-    public static void deleteObjects() {
-        for (ObjetsItems objectItem: objectItems) {
-            objectItem.delete();
+    public static void createTarget(StateMessage state) {
+        if (labelSans == null) {
+            labelSans = createLabelMessage(state, 40);
         }
-        objectItems.clear();
+        else {
+            labelSans.setText(state.getValue());
+            labelSans.setState(state);
+        }
+        labelSans.setWrap(true);
+        labelSans.setWidth(500);
+
+        labelSans.setPosition(boxHeart.getX() + VH_WIDTH * 6, boxHeart.getY() + boxHeart.getHeight() - VH_HEIGHT * 4 - labelSans.getHeight());
+        stage.addActor(labelSans);
+    }
+
+    public static void createMessage(StateMessage state) {
+        heart.remove();
+        labelSans.setText(state.getValue());
+    }
+
+    public static void writeMessage(String description, StateMessage state) {
+        heart.remove();
+
+        if (labelSans.getText().length < description.length()) {
+            if( !isDialoguePlaying() ) { dialogueSound(); }
+            labelSans.setText(labelSans.getText().toString() + description.charAt(i));
+            labelSans.setState(state);
+            labelSans.setPosition(boxHeart.getX() + VH_WIDTH * 6, boxHeart.getY() + boxHeart.getHeight() - VH_HEIGHT * 12 - labelSans.getHeight());
+            i ++;
+        } else {
+            isWritingMessage = false;
+            i = 0;
+        }
+    }
+
+    public static void createAction() {
+        labelSans.setText(CHECK.getValue());
+        labelSans.setState(CHECK);
     }
 
     public static void selectTarget() {
-        if (objectItems.isEmpty()) {
-            createTarget();
-            heart.setPositionSelectItem();
+        if (labelSans == null || labelSans.getStage() == null) {
+            createTarget(SANS);
+            heart.setPositionSelectTarget();
         }
-        if ( CollisionListener.isCollided(heart, objectItems.getFirst()) && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect) {
-            deleteObjects();
+        if ( labelSans.getStage() != null && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect) {
             selectSound();
+            score += act * 100;
+            act ++;
+            labelSans.remove();
             heart.isTurn = false;
             heart.setPositionFight();
         }
         if (Gdx.input.isKeyPressed(Keys.ESCAPE)) {
             selectSound();
-            deleteObjects();
-            heart.setPositionFightOp();
+            labelSans.remove();
             heart.setOption(0);
             optionSelected = 0;
             canSelect = false;
+            heart.setPositionFightOp();
+        }
+    }
+
+    public static void selectAct() {
+        if (labelSans == null || labelSans.getStage() == null) {
+            createTarget(SANS);
+            heart.setPositionSelectTarget();
+        }
+
+        if (isWritingMessage) {
+            writeMessage("* SANS 1 ATK 1 DEF\n* The easiest enemy.\n* Can only deal 1 damage", ACT_DESCRIPTION);
+            return;
+        }
+
+        if (labelSans.getStage() != null && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect) {
+            switch (labelSans.getState()) {
+                case SANS -> {
+                    selectSound();
+                    createAction();
+                    canSelect = false;
+                }
+                case CHECK -> {
+                    selectSound();
+                    createMessage(EMPTY);
+                    isWritingMessage = true;
+                    canSelect = false;
+                }
+                case ACT_DESCRIPTION -> {
+                    selectSound();
+                    labelSans.remove();
+                    act = act == 0 ? 1 : act;
+                    heart.isTurn = false;
+                    heart.setPositionFight();
+                }
+            }
+
+        }
+
+        if (Gdx.input.isKeyPressed(Keys.ESCAPE) && canSelect) {
+            switch (labelSans.getState()) {
+                case SANS -> {
+                    selectSound();
+                    labelSans.remove();
+                    heart.setOption(0);
+                    optionSelected = 0;
+                    canSelect = false;
+                    heart.setPositionActOp();
+                }
+                case CHECK -> {
+                    selectSound();
+                    createTarget(SANS);
+                    canSelect = false;
+                }
+            }
+        }
+    }
+
+    public static void doNotShowItems() {
+        for (LabelMessage message: items) {
+            message.remove();
+        }
+    }
+
+    public static void doShowItems() {
+        for (LabelMessage message: items) {
+            stage.addActor(message);
+        }
+    }
+
+    public static void updateListItems() {
+        items.get(iteratorDeleted).remove();
+        items.remove(iteratorDeleted);
+    }
+
+    public static boolean isItemsInStage() {
+        for (LabelMessage message: items) {
+            if (message.getStage() == null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static void createItems() {
+        for (int i = 0; i < 4; i ++) {
+            switch (i) {
+                case 0 -> {
+                    items.add(createLabelMessage(PIE, 40));
+                    items.get(i).setPosition(boxHeart.getX() + VH_WIDTH * 7, boxHeart.getY() + boxHeart.getHeight() - VH_HEIGHT * 12);
+                }
+                case 1 -> {
+                    items.add(createLabelMessage(SNOW_PIECE, 40));
+                    items.get(i).setPosition(boxHeart.getX() + boxHeart.getWidth()/2 + VH_WIDTH * 7, boxHeart.getY() + boxHeart.getHeight() - VH_HEIGHT * 12);
+                }
+                case 2, 3 -> {
+                    items.add(createLabelMessage(GLAMBURGUER, 40));
+                    if (i == 2) {
+                        items.get(i).setPosition(boxHeart.getX() + VH_WIDTH * 7, boxHeart.getY() + items.get(i).getHeight());
+                    } else {
+                        items.get(i).setPosition(boxHeart.getX() + VH_WIDTH * 7+ boxHeart.getWidth()/2, boxHeart.getY() +  items.get(i).getHeight());
+                    }
+                }
+            }
+            stage.addActor(items.get(i));
+        }
+    }
+
+    public static void recoveryHealth() {
+        switch (items.get(iteratorDeleted).getState()) {
+            case PIE -> heart.setHp(Math.max(heart.getHp() + 90, 90));
+            case SNOW_PIECE -> heart.setHp(Math.max(heart.getHp() + 70, 90));
+            case GLAMBURGUER -> heart.setHp(Math.max(heart.getHp() + 40, 90));
+        }
+    }
+
+    public static void selectItem() {
+        if (items.isEmpty() && canAddItems) {
+            createItems();
+            heart.setPositionSelectItem();
+            heart.setOption(4);
+            canAddItems = false;
+        } else if (!isItemsInStage()){
+            if (labelSans == null || labelSans.getStage() == null) {
+                doShowItems();
+            }
+            heart.setPositionSelectItem();
+            heart.setOption(4);
+        } else if (items.isEmpty() && !canAddItems) {
+            return;
+        }
+
+        if (isWritingMessage) {
+            if (items.get(iteratorDeleted).getState() == PIE) {
+                writeMessage("* You have eaten the Pie you have\nrecovered 90 HP", ITEM_CONSUMED);
+            } else if(items.get(iteratorDeleted).getState() == SNOW_PIECE) {
+                writeMessage("* You have eaten the SnowmanPiece\nyou have recovered 70 HP", ITEM_CONSUMED);
+            } else {
+                writeMessage("* You have eaten the Glamburguer\nyou have recovered 40 HP", ITEM_CONSUMED);
+            }
+            return;
+        }
+
+        if (labelSans != null && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect && labelSans.getStage() != null && labelSans.getState() == ITEM_CONSUMED) {
+            selectSound();
+            labelSans.remove();
+            isWritingMessage = false;
+            act = act == 0 ? 1 : act;
+            heart.isTurn = false;
+            canSelect = false;
+            updateListItems();
+            heart.setPositionFight();
+        }
+        if (Gdx.input.isKeyPressed(Keys.ENTER) && canSelect) {
+            soundHeal();
+            createTarget(EMPTY);
+            doNotShowItems();
+            isWritingMessage = true;
+            canSelect = false;
+            iteratorDeleted = iteratorItems;
+            recoveryHealth();
+        }
+        if (Gdx.input.isKeyPressed(Keys.ESCAPE) && canSelect && (labelSans == null || labelSans.getStage() == null)) {
+            selectSound();
+            doNotShowItems();
+            heart.setOption(0);
+            optionSelected = 0;
+            canSelect = false;
+            heart.setPositionItemOp();
+        }
+    }
+
+    public static void selectMercy() {
+        if (labelSans == null || labelSans.getStage() == null) {
+            createTarget(SPARE);
+            heart.setPositionSelectTarget();
+        }
+        if (labelSans.getStage() != null && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect && !isSparing) {
+            selectSound();
+            labelSans.remove();
+            heart.isTurn = false;
+            act = act == 0 ? 1 : act;
+            heart.setPositionFight();
+        }
+
+        if (Gdx.input.isKeyPressed(Keys.ESCAPE) && canSelect) {
+            selectSound();
+            labelSans.remove();
+            heart.setOption(0);
+            optionSelected = 0;
+            canSelect = false;
+            heart.setPositionMercyOp();
         }
     }
 
     public static void isFightSelected(boolean isOverFightOp) {
         fightOp.updateIsCollided(CollisionListener.isCollided(heart, fightOp));
-        if (Gdx.input.isKeyPressed(Keys.ENTER) && isOverFightOp && canSelect) {
+        if (Gdx.input.isKeyPressed(Keys.ENTER) && isOverFightOp && canSelect && boxHeart.mode == 0) {
             selectSound();
             canSelect = false;
             optionSelected = 1;
         }
     }
 
-    public static void isItemSelected(boolean isOverItem) {
-        itemOp.updateIsCollided(CollisionListener.isCollided(heart, itemOp));
-        if (Gdx.input.isKeyPressed(Keys.ENTER) && isOverItem && canSelect) {
+    public static void isActSelected(boolean isOverAct) {
+        actOp.updateIsCollided(CollisionListener.isCollided(heart, actOp));
+        if (Gdx.input.isKeyPressed(Keys.ENTER) && isOverAct && canSelect && boxHeart.mode == 0) {
+            selectSound();
             canSelect = false;
+            optionSelected = 2;
         }
     }
 
-    public static void isActSelected(boolean isOverAct) {
-        actOp.updateIsCollided(CollisionListener.isCollided(heart, actOp));
-        if (Gdx.input.isKeyPressed(Keys.ENTER) && isOverAct && canSelect) {
+    public static void isItemSelected(boolean isOverItem) {
+        itemOp.updateIsCollided(CollisionListener.isCollided(heart, itemOp));
+        if (Gdx.input.isKeyPressed(Keys.ENTER) && isOverItem && canSelect && boxHeart.mode == 0) {
+            selectSound();
             canSelect = false;
+            optionSelected = 3;
         }
     }
 
     public static void isMercySelected(boolean isOverMercy) {
         mercyOp.updateIsCollided(CollisionListener.isCollided(heart, mercyOp));
-        if (Gdx.input.isKeyPressed(Keys.ENTER) && isOverMercy && canSelect) {
+        if (Gdx.input.isKeyPressed(Keys.ENTER) && isOverMercy && canSelect && boxHeart.mode == 0) {
+            selectSound();
             canSelect = false;
+            optionSelected = 4;
         }
     }
 
     public static void detectEvent() {
-        if (!Gdx.input.isKeyPressed(Keys.ENTER)  && !canSelect) { canSelect = true;  }
+        if (!Gdx.input.isKeyPressed(Keys.ENTER) && !Gdx.input.isKeyPressed(Keys.ESCAPE) && !canSelect) { canSelect = true;  }
         switch (optionSelected) {
-            case 1:
-                selectTarget();
-                break;
-            case 2:
-                break;
+            case 1 -> selectTarget();
+            case 2 -> selectAct();
+            case 3 -> selectItem();
+            case 4 -> selectMercy();
         }
 
         isFightSelected(CollisionListener.isCollided(heart, fightOp));
-        isItemSelected(CollisionListener.isCollided(heart, itemOp));
         isActSelected(CollisionListener.isCollided(heart, actOp));
+        isItemSelected(CollisionListener.isCollided(heart, itemOp));
         isMercySelected(CollisionListener.isCollided(heart,mercyOp));
     }
 }

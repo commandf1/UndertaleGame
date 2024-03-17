@@ -237,7 +237,8 @@ com.badlogic.gdx.scenes.scene2d.ui.TextField$TextFieldStyle: {
         cursor: white
         selection: highlight
         messageFont: font
-        messageFontColor: message
+        messageFontColor: message,
+
     }
     spinner: {
         font: font
