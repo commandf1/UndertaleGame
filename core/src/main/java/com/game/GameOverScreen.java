@@ -8,8 +8,6 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import java.util.ArrayList;
-
-import static com.game.DataBase.closeConnection;
 import static com.game.FabricElements.createLabel;
 import static com.game.Sounds.gameOverTheme;
 import static com.game.Sounds.isGameOverPlaying;
@@ -58,7 +56,7 @@ public class GameOverScreen implements Screen {
 
     @Override
     public void show() {
-        heart.setOption(4);
+        heart.setOption(-1);
         heart.updateHitBox();
         loadLabels();
         stage.addActor(gameOverLabel);

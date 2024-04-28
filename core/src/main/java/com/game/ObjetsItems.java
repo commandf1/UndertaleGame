@@ -35,7 +35,7 @@ public class ObjetsItems extends Actor {
     private boolean isReverseSense = false;
 
     private float seconds = 0;
-    Sprite imageObject;
+    private Sprite imageObject;
 
     public Direction getDirection() {
         return direction;
@@ -252,7 +252,7 @@ public class ObjetsItems extends Actor {
 
     public void drawBoneTab() {
         batch.begin();
-        batch.draw(imageObject,  getX(), getY(), getWidth()*2.5f, getHeight()*2f) ;
+        batch.draw(imageObject,  getX(), getY(), getWidth()*2.5f, getHeight()*2f);
         batch.end();
     }
 
@@ -262,29 +262,6 @@ public class ObjetsItems extends Actor {
         batch.draw(imageObject, getX(), getY(), getOriginX(), getOriginY(), getWidth(), getHeight(), scale + .5f, scale + 1f, getAngle());
         batch.end();
     }
-
-    public float getXEdge() {
-        return getOriginX() + (getX() - getOriginX()) * (float)Math.cos(angle) - (getOriginY() - getOriginY()) * (float)Math.sin(angle);
-    }
-
-    public float getYEdge() {
-        return getOriginY() + (getOriginX() - getOriginX()) * (float)Math.sin(angle) + (getOriginY() - getOriginY()) * (float)Math.cos(angle);
-    }
-
-    public void rotateLookingHeart() {
-        float anglePE = (float) Math.atan2(getYEdge() - getOriginY(), getXEdge() - getOriginX());
-        float anglePT = (float) Math.atan2(heart.getY() - getOriginY(), heart.getX() - getOriginX());
-
-        angle = anglePT - anglePE;
-    }
-
-
-    public void drawRotating(float scale) {
-        batch.begin();
-        batch.draw(imageObject, getX(), getY(), getOriginX(), getOriginY(), getWidth(), getHeight(), scale + .5f, scale, angle);
-        batch.end();
-    }
-
 
     public void updateHitBox() {
         hitBox.setX(getX());

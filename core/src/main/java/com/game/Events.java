@@ -51,7 +51,11 @@ public class Events {
     }
 
     public static void writeMessage(String description, StateMessage state) {
-        heart.remove();
+        if (labelSans == null ) {
+            labelSans = createLabelMessage(state, 40);
+            labelSans.setWrap(true);
+            labelSans.setWidth(500);
+        }
 
         if (labelSans.getText().length < description.length()) {
             if( !isDialoguePlaying() ) { dialogueSound(); }
@@ -71,7 +75,7 @@ public class Events {
     }
 
     public static void selectTarget() {
-        if (labelSans == null || labelSans.getStage() == null) {
+        if (labelSans == null || labelSans.getStage() == null || labelSans.getState() == SINS) {
             createTarget(SANS);
             heart.setPositionSelectTarget();
         }
@@ -207,16 +211,21 @@ public class Events {
 
     public static void selectItem() {
         if (items.isEmpty() && canAddItems) {
+            if (labelSans != null) {
+                labelSans.remove();
+            }
             createItems();
             heart.setPositionSelectItem();
             heart.setOption(4);
             canAddItems = false;
-        } else if (!isItemsInStage()){
+        } else if (!isItemsInStage() && (labelSans.getState() == null || labelSans.getStage() == null)){
+            labelSans.remove();
             if (labelSans == null || labelSans.getStage() == null) {
                 doShowItems();
             }
             heart.setPositionSelectItem();
             heart.setOption(4);
+            canAddItems = false;
         } else if (items.isEmpty() && !canAddItems) {
             return;
         }
@@ -244,8 +253,9 @@ public class Events {
         }
         if (Gdx.input.isKeyPressed(Keys.ENTER) && canSelect) {
             soundHeal();
-            createTarget(EMPTY);
             doNotShowItems();
+            heart.remove();
+            createTarget(EMPTY);
             isWritingMessage = true;
             canSelect = false;
             iteratorDeleted = iteratorItems;

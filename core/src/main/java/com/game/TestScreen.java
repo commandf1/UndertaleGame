@@ -4,66 +4,76 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.OrthographicCamera;
-
-import static com.badlogic.gdx.math.MathUtils.random;
-import static com.game.Undertale.batch;
+import static com.game.BlackScreen.VH_HEIGHT;
+import static com.game.Undertale.stage;
 
 public class TestScreen implements Screen {
-    private final Undertale game;
-    private final OrthographicCamera camera;
+    private BoxAttack boxAttack;
 
-    private Sans sans;
+    private BarAttack barAttack;
 
-    public TestScreen(Undertale game ){
-        this.game = game;
-        camera = new OrthographicCamera(Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-        camera.position.set(camera.viewportWidth / 2f, camera.viewportHeight / 2f, 0);
-        camera.update();
-    }
+    private MissLabel missLabel;
+
+    private boolean isOptionAvailable = true;
+
+    private Hit hit;
     @Override
     public void show() {
-        sans = new Sans(); sans.animationRightHand();
+        boxAttack = new BoxAttack((float) Gdx.graphics.getWidth() /2, (float) Gdx.graphics.getHeight() /2);
+        barAttack = new BarAttack(boxAttack.getX(), boxAttack.getY());
+
+        hit = new Hit(boxAttack.getX() + boxAttack.getWidth()/2, boxAttack.getY() + boxAttack.getHeight() + 4 * VH_HEIGHT);
+        missLabel = new MissLabel(boxAttack.getX() + boxAttack.getWidth()/2, hit.getY() + hit.getHeight() + 4 * VH_HEIGHT);
     }
 
     @Override
     public void render(float v) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-
-        if ( Gdx.input.isKeyPressed(Input.Keys.ENTER )) {
-            camera.position.y -= 5;
-            camera.update();
-        } else if ( Gdx.input.isKeyPressed(Input.Keys.UP )) {
-            camera.position.y += 5;
-            camera.update();
+        if (!Gdx.input.isKeyPressed(Input.Keys.ENTER)) {
+            isOptionAvailable = true;
         }
 
-        if (Gdx.input.isKeyPressed(Input.Keys.Q)) {
-            Gdx.app.exit();
-        }
+        float positionBarNormalized = barAttack.getX() - boxAttack.getX();
 
-        if (sans.isAnimationFinished() && sans.isCanAnimate()) {
-            int animation = random.nextInt(4);
-            switch (animation) {
-                case 0 -> {
-                    sans.animationUpwardHand();
-                }
-                case 1 -> {
-                    sans.animationLeftHand();
-                }
-                case 2 -> {
-                    sans.animationDownwardHand();
-                }
-                case 3 -> {
-                    sans.animationRightHand();
-                }
+        if (Gdx.input.isKeyPressed(Input.Keys.ENTER) && boxAttack.getStage() == null) {
+            stage.addActor(boxAttack);
+            isOptionAvailable = false;
+        } else if (Gdx.input.isKeyPressed(Input.Keys.ENTER) && boxAttack.getStage() != null && isOptionAvailable){
+            hit.animationHit();
+            stage.addActor(hit);
+            stage.addActor(missLabel);
+            if (barAttack.getStage() == null) {
+                stage.addActor(barAttack);
             }
 
+
+            isOptionAvailable = false;
+
+
+
+            System.out.println("POSITION PRESSED Enter : " + (barAttack.getX() - boxAttack.getX()));
+            if ( 262 <=  positionBarNormalized &&  positionBarNormalized <= 282 ) {
+                System.out.println("CENTERED");
+                if (positionBarNormalized == 273 ) {
+                    System.out.println("PERFECT");
+                }
+            }
+            barAttack.setX(boxAttack.getX());
+
+        }  else if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) && boxAttack.getStage() != null){
+            boxAttack.remove();
+            barAttack.remove();
+            hit.remove();
+            missLabel.remove();
+            barAttack.setX(boxAttack.getX());
         }
-        sans.act(v);
-        batch.setProjectionMatrix(camera.combined);
-        sans.draw(batch, 1);
+
+        if (barAttack.getStage() != null) {
+            barAttack.setX(Math.min(barAttack.getX() + 6, boxAttack.getX() + boxAttack.getWidth()));
+        }
+        stage.act(v);
+        stage.draw();
     }
 
     @Override

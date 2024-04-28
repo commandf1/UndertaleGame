@@ -22,8 +22,6 @@ public class Undertale extends Game {
     public static ShapeRenderer shapeRenderer;
 
     private String name;
-    private float score = 0;
-
     private LocalTime timePlayed;
 
     public static FileHandle fontFile;
@@ -34,14 +32,6 @@ public class Undertale extends Game {
 
     public String getName() {
         return name;
-    }
-
-    public float getScore() {
-        return score;
-    }
-
-    public void setScore(float score) {
-        this.score = score;
     }
 
     public LocalTime getTimePlayed() {
@@ -82,7 +72,7 @@ public class Undertale extends Game {
     }
     public void showRankingScreen() { switchScreen(new RankingScreen(this)); }
 
-    public void showTestScreen() { switchScreen(new TestScreen(this)); }
+    public void showTestScreen() { switchScreen(new TestScreen()); }
 
     public void showCreditsScreen() { switchScreen(new CreditsScreen(this));}
 
@@ -106,15 +96,17 @@ public class Undertale extends Game {
     @Override
     public void create() {
         initData( );
-        // showTestScreen();
-        showMainMenuScreen();
+        showTestScreen();
+        //showMainMenuScreen();
     }
 
     @Override
     public void dispose() {
         super.dispose();
         getScreen().dispose();
-        generator.dispose();
+        if (generator != null) {
+            generator.dispose();
+        }
         batch.dispose();
         stage.dispose();
     }

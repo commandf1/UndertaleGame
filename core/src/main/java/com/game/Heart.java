@@ -56,10 +56,6 @@ public class Heart extends Actor {
         this.option = op;
     }
 
-    public int getIteratorItems() {
-        return iteratorItems;
-    }
-
     public Heart(Texture image, float xPos, float yPos) {
         setX(xPos); setY(yPos);
         this.sprite = new Sprite(image);
@@ -135,7 +131,8 @@ public class Heart extends Actor {
 
     public void setPositionSelectTarget() {
         this.setX(labelSans.getX() - VH_WIDTH * 3);
-        this.setY(labelSans.getY() + this.sprite.getRegionHeight() + VH_HEIGHT);
+        System.out.println(labelSans.getY() + 3*VH_HEIGHT);
+        this.setY(labelSans.getY() + 3*VH_HEIGHT);
         this.option = -1;
         updateHitBox();
     }
@@ -162,7 +159,6 @@ public class Heart extends Actor {
             this.setX(item.getX() - VH_WIDTH * 3);
             this.setY(item.getY() + this.sprite.getRegionHeight() + VH_HEIGHT);
             canMoveRight = false;
-
         }
         if (Gdx.input.isKeyJustPressed(Input.Keys.LEFT) && canMoveLeft) {
             selectSound();

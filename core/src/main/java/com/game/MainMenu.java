@@ -8,13 +8,10 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.InputListener;
-import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
-
 import static com.game.BlackScreen.VH_HEIGHT;
 import static com.game.BlackScreen.VH_WIDTH;
-import static com.game.DataBase.closeConnection;
 import static com.game.Sounds.stopAllSounds;
 import static com.game.Undertale.*;
 
@@ -29,11 +26,6 @@ public class MainMenu implements Screen {
     }
 
     public void createButtons() {
-        Label.LabelStyle authorStyle = new Label.LabelStyle();
-        authorStyle.font = getFont(30);
-        authorStyle.fontColor = Color.WHITE;
-        Label author = new Label("Made by: David Andrés Carrero Tinoco", authorStyle);
-
         TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
         textButtonStyle.font = getFont(30);
         textButtonStyle.fontColor = Color.WHITE;
@@ -44,8 +36,6 @@ public class MainMenu implements Screen {
         playButton.setPosition((float) Gdx.graphics.getWidth() / 2, 200);
         rankingButton.setPosition(playButton.getX() - rankingButton.getWidth()/4, playButton.getY() - playButton.getHeight() - 20);
         creditsButton.setPosition((float) Gdx.graphics.getWidth() / 2 - 1.5f*VH_WIDTH, rankingButton.getY() - rankingButton.getHeight() - VH_HEIGHT * 2f );
-
-        author.setPosition(Gdx.graphics.getWidth() - 20 - author.getWidth(), 20);
 
         playButton.addListener(new ClickListener() {
             @Override
@@ -114,7 +104,6 @@ public class MainMenu implements Screen {
         });
 
         stage.addActor(playButton);
-        stage.addActor(author);
         stage.addActor(rankingButton);
         stage.addActor(creditsButton);
     }
