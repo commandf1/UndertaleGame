@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 
+import static com.game.BlackScreen.VH_WIDTH;
 import static com.game.Direction.DOWNWARD;
 import static com.game.Direction.UPWARD;
 
@@ -22,7 +23,7 @@ public class MissLabel extends Actor {
     public MissLabel(float x, float y) {
         miss = new Sprite(new Texture(Gdx.files.internal("images/HitSprite.png")));
         miss.setRegion(825, 174,  124,38);
-        setPosition(x - (float) miss.getRegionWidth() /2,y);
+        setPosition(x - (float) miss.getRegionWidth() /2 + 2 * VH_WIDTH,y);
         setSize(miss.getRegionWidth(), miss.getHeight());
         direction = UPWARD;
         originY = y;
@@ -57,5 +58,10 @@ public class MissLabel extends Actor {
         }
         batch.draw(miss, getX(), getY(), (float) miss.getRegionWidth() /2, (float) miss.getRegionHeight() /2, miss.getRegionWidth(), miss.getRegionHeight(), 1,1, 0);
 
+    }
+
+    public void dispose() {
+        miss.getTexture().dispose();
+        remove();
     }
 }

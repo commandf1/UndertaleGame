@@ -10,11 +10,10 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import java.time.Duration;
 import java.time.LocalTime;
-import static com.game.Events.canAddItems;
-import static com.game.Events.optionSelected;
+
 import static com.game.BattleController.*;
 import static com.game.DataBase.*;
-import static com.game.Events.detectEvent;
+import static com.game.Events.*;
 import static com.game.Sounds.stopAllSounds;
 import static com.game.Undertale.*;
 
@@ -52,8 +51,7 @@ public class BlackScreen implements Screen {
     }
 
     public static void updateGameOnHeartDeath() {
-        if (heart.getHp() == 0 ) {
-
+        if (heart.getHp() == 0) {
             deleteBones();
             updatePlayerStats(game.getName(), score, Duration.between(game.getTimePlayed(), LocalTime.now()), false);
             act = score = 0;
@@ -119,7 +117,7 @@ public class BlackScreen implements Screen {
     public void show() {
         canAddItems = true;
         closeConnection();
-        //Sounds.fightSound();
+        Sounds.fightSound();
         loadImages();
         loadObject();
         createLabels();
@@ -132,8 +130,6 @@ public class BlackScreen implements Screen {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
         Gdx.input.setInputProcessor(KeyListener.get());
-
-        //updateGameOnHeartDeath();
 
         update();
 
@@ -167,6 +163,7 @@ public class BlackScreen implements Screen {
             Heart.canMoveRight = !Gdx.input.isKeyPressed(Input.Keys.RIGHT) || Heart.canMoveRight;
             stage.draw();
             detectEvent();
+            drawBlackGround();
         }
 
         /*
@@ -225,5 +222,6 @@ public class BlackScreen implements Screen {
         if (image != null) {
             image.dispose();
         }
+        items.clear();
     }
 }

@@ -131,7 +131,6 @@ public class Heart extends Actor {
 
     public void setPositionSelectTarget() {
         this.setX(labelSans.getX() - VH_WIDTH * 3);
-        System.out.println(labelSans.getY() + 3*VH_HEIGHT);
         this.setY(labelSans.getY() + 3*VH_HEIGHT);
         this.option = -1;
         updateHitBox();

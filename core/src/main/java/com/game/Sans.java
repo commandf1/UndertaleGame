@@ -6,20 +6,25 @@ import com.badlogic.gdx.graphics.g2d.*;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import static com.game.BlackScreen.VH_HEIGHT;
 import static com.game.BlackScreen.VH_WIDTH;
+import static com.game.Direction.BACKWARD;
+import static com.game.Direction.TOWARD;
 
 public class Sans extends Actor {
-    private Sprite body;
-    private Sprite head;
-    private Sprite legs;
-
-    private TextureRegion headTexture, bodyTexture, legsTexture;
+    private final Sprite body;
+    private final Sprite head;
+    private final Sprite legs;
 
     private Animation<TextureRegion> animation;
 
     private float stateTime;
 
-    private boolean canAnimate = true;
     private final Sprite image;
+
+    private Direction direction = BACKWARD;
+
+    private boolean isAnimationVoidFinished, canAnimateEvadeAttack = false;
+
+    private final float HALF_SCREEN_WIDTH = (float) Gdx.graphics.getWidth() / 2;
 
     public Sans() {
         image = new Sprite(new Texture(Gdx.files.internal("images/SansSprite.png")));
@@ -38,14 +43,10 @@ public class Sans extends Actor {
         body.setOriginCenter();
         legs.setOrigin(legs.getWidth() / 2, legs.getRegionHeight());
 
-        setPosition((float) Gdx.graphics.getWidth() / 2, 3 * (float) Gdx.graphics.getHeight() / 4);
+        setPosition(HALF_SCREEN_WIDTH, 3 * (float) Gdx.graphics.getHeight() / 4);
         body.setPosition(getX(), getY());
         head.setPosition(body.getX(), body.getY() + body.getRegionHeight() + VH_HEIGHT * 1.5f);
         legs.setPosition(body.getX(), body.getY() - (float) body.getRegionHeight() / 2 - legs.getRegionHeight() - VH_HEIGHT * 2f);
-    }
-
-    public boolean isCanAnimate() {
-        return this.canAnimate;
     }
 
     public void animationRightHand() {
@@ -118,6 +119,48 @@ public class Sans extends Actor {
         }
     }
 
+    public boolean isAnimationEvadeFinished() {
+        return isAnimationVoidFinished;
+    }
+
+    public void setIsAnimationVoidFinishedFalse() {
+        isAnimationVoidFinished = false;
+    }
+
+    public void activateAnimationEvade() {
+        canAnimateEvadeAttack = true;
+    }
+
+    public boolean isCanAnimateEvadeAttack() {
+        return canAnimateEvadeAttack;
+    }
+
+    public void animateVoidAttack() {
+        if (canAnimateEvadeAttack) {
+            switch (direction) {
+                case BACKWARD -> {
+                    float limitX = HALF_SCREEN_WIDTH - VH_WIDTH * 13;
+                    head.setX(Math.max(head.getX() - 8, limitX)  );
+                    body.setX(Math.max(body.getX() - 8, limitX)  );
+                    legs.setX(Math.max(legs.getX() - 8, limitX)  );
+                    if (head.getX() == limitX) {
+                        direction = TOWARD;
+                    }
+                }
+                case TOWARD -> {
+                    head.setX(Math.min(head.getX() + 8, HALF_SCREEN_WIDTH)  );
+                    body.setX(Math.min(body.getX() + 8, HALF_SCREEN_WIDTH)  );
+                    legs.setX(Math.min(legs.getX() + 8, HALF_SCREEN_WIDTH)  );
+                    if (head.getX() == HALF_SCREEN_WIDTH) {
+                        direction = BACKWARD;
+                        isAnimationVoidFinished = true;
+                        canAnimateEvadeAttack = false;
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void act(float delta) {
         super.act(delta);
@@ -142,15 +185,19 @@ public class Sans extends Actor {
             pendulumSwingXBody = -pendulumSwingXBody;
         }
         if (isAnimationFinished()) {
-             batch.draw(head, body.getX() + VH_WIDTH * 0.3f * getScaleX() - pendulumSwingXBody + 1 * getScaleY(),  -0.5f * VH_HEIGHT * getScaleY() + body.getY()+ (float) body.getRegionHeight() /2 + head.getRegionHeight() - movementY , head.getOriginX(), 0, head.getRegionWidth(), head.getRegionHeight(), getScaleY(), getScaleY(), 0);
-        float pendulumSwingX = (float) (2f * Math.sin(10f * stateTime / 2)) - 1.5f;
-        float movementYBody = (float) (1.5f * Math.sin(20f * stateTime)) - 1.5f;
-        batch.draw(body, body.getX() - pendulumSwingX, body.getY() - (VH_HEIGHT * getScaleY() * 0.3f) - movementYBody , body.getOriginX(), body.getOriginY(), body.getRegionWidth(), body.getRegionHeight(), getScaleX(), getScaleY(), 0);
-        batch.draw(legs, legs.getX() + (VH_WIDTH*1.9f/ getScaleX()), legs.getY() + VH_HEIGHT * 0.2f, legs.getOriginX(), legs.getOriginY(), legs.getRegionWidth(), legs.getRegionHeight(), getScaleX(), getScaleY(), 0);
+
+            batch.draw(head, body.getX() + VH_WIDTH * 0.3f * getScaleX() - pendulumSwingXBody + 1 * getScaleY(),  -0.5f * VH_HEIGHT * getScaleY() + body.getY()+ (float) body.getRegionHeight() /2 + head.getRegionHeight() - movementY , head.getOriginX(), 0, head.getRegionWidth(), head.getRegionHeight(), getScaleY(), getScaleY(), 0);
+            float pendulumSwingX = (float) (2f * Math.sin(10f * stateTime / 2)) - 1.5f;
+            float movementYBody = (float) (1.5f * Math.sin(20f * stateTime)) - 1.5f;
+            batch.draw(body, body.getX() - pendulumSwingX, body.getY() - (VH_HEIGHT * getScaleY() * 0.3f) - movementYBody , body.getOriginX(), body.getOriginY(), body.getRegionWidth(), body.getRegionHeight(), getScaleX(), getScaleY(), 0);
+            batch.draw(legs, legs.getX() + (VH_WIDTH*1.9f/ getScaleX()), legs.getY() + VH_HEIGHT * 0.2f, legs.getOriginX(), legs.getOriginY(), legs.getRegionWidth(), legs.getRegionHeight(), getScaleX(), getScaleY(), 0);
+
         } else {
             float deltaY, deltaX;
         // 20
         TextureRegion currentFrame = animation.getKeyFrame(stateTime*20, false);
+
+
         if (currentFrame.getRegionX() == 9 && currentFrame.getRegionY() == 297) {
             deltaY = -0.7f * VH_HEIGHT * getScaleY();
         }

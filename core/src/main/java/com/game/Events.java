@@ -2,7 +2,6 @@ package com.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
-import listener.CollisionListener;
 import java.util.ArrayList;
 import static com.game.BattleController.act;
 import static com.game.BlackScreen.*;
@@ -11,6 +10,7 @@ import static com.game.Heart.iteratorItems;
 import static com.game.Sounds.*;
 import static com.game.StateMessage.*;
 import static com.game.Undertale.stage;
+import static listener.CollisionListener.isCollided;
 
 
 public class Events {
@@ -25,6 +25,14 @@ public class Events {
     public static boolean isSparing = false;
 
     private static boolean isWritingMessage = false;
+
+    private static BoxAttack boxAttack;
+
+    private static Hit hit;
+
+    private static BarAttack barAttack;
+
+    private static MissLabel missLabel;
 
     public static ArrayList<LabelMessage> getItems() {
         return items;
@@ -74,20 +82,118 @@ public class Events {
         labelSans.setState(CHECK);
     }
 
+    public static void  createBoxAttack() {
+        if (boxAttack == null) {
+            boxAttack = new BoxAttack(boxHeart.getX() + boxHeart.getWidth()/2, boxHeart.getY() + boxHeart.getHeight()/2, boxHeart.getWidth(), boxHeart.getHeight());
+            stage.addActor(boxAttack);
+        }
+    }
+
+    public static void createBarAttack() {
+        if (barAttack == null) {
+            barAttack = new BarAttack(boxHeart.getY() + VH_HEIGHT );
+            stage.addActor(barAttack);
+        }
+    }
+
+    public static void createHit() {
+        attackSwipeSound();
+        if (hit == null) {
+            hit = new Hit(boxAttack.getX() + boxAttack.getWidth()/2, sans.getY() - 4 * VH_HEIGHT);
+            stage.addActor(hit);
+        } else if (hit.getStage() == null) {
+            stage.addActor(hit);
+        }
+        hit.animationHit();
+    }
+
+    public static void moveBarAttack() {
+        if (barAttack != null) {
+            barAttack.move();
+        }
+    }
+
+    public static void createMissLabel() {
+        if (missLabel == null) {
+            missLabel = new MissLabel(sans.getX(), sans.getY() + 15 * VH_HEIGHT);
+        }
+    }
+
+    public static void disposeResourceAnimationAttack() {
+        if (hit != null) {
+            hit.dispose();
+            hit = null;
+        }
+        if (barAttack != null) {
+            barAttack.dispose();
+            barAttack = null;
+        }
+        if (boxAttack != null) {
+            boxAttack.dispose();
+            boxAttack = null;
+        }
+    }
+
     public static void selectTarget() {
-        if (labelSans == null || labelSans.getStage() == null || labelSans.getState() == SINS) {
+        moveBarAttack();
+        if (sans.isCanAnimateEvadeAttack()) {
+            sans.animateVoidAttack();
+        }
+
+        if ( labelSans == null || labelSans.getStage() == null && boxAttack == null) {
             createTarget(SANS);
             heart.setPositionSelectTarget();
         }
-        if ( labelSans.getStage() != null && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect) {
-            selectSound();
-            score += act * 100;
-            act ++;
+        if ( labelSans.getStage() != null && boxAttack == null && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect) {
+            heart.remove();
             labelSans.remove();
+            selectSound();
+            canSelect = false;
+            createBoxAttack();
+            createBarAttack();
+            createMissLabel();
+        }
+        if (boxAttack != null && boxAttack.getStage() != null && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect) {
+            labelSans.remove();
+            barAttack.verifyRegion();
+            barAttack.stop();
+            sans.activateAnimationEvade();
+            sans.animateVoidAttack();
+            createHit();
+            canSelect = false;
+        }
+        if (barAttack != null && barAttack.getStage() != null && sans.isAnimationEvadeFinished()) {
+            float POSITION_BAR_NORMALIZED = barAttack.getX() + barAttack.getWidth()/2 - boxAttack.getX() * VH_WIDTH * 0.16f;
+
+            stage.addActor(missLabel);
+            labelSans.remove();
+            System.out.println(boxAttack.getWidth() * VH_WIDTH * 0.16f);
+            System.out.println("position: " + POSITION_BAR_NORMALIZED);
+            System.out.printf("Size %s , %s  -  Position %s\n", boxAttack.getWidth(), boxAttack.getHeight(), boxAttack.getX());
+
+            if (isCollided(barAttack,boxAttack)) {
+                System.out.println("centred at: " + POSITION_BAR_NORMALIZED);
+                if (POSITION_BAR_NORMALIZED == 273) {
+                    score += 200;
+                }
+                score += 300;
+            } else if ((247 < POSITION_BAR_NORMALIZED && POSITION_BAR_NORMALIZED < 264
+            ) || (282 < POSITION_BAR_NORMALIZED && POSITION_BAR_NORMALIZED < 304)) {
+                score += 150;
+                System.out.println("GREEN ZONE");
+            }
+
+
+            score += act * 100;
+            disposeResourceAnimationAttack();
+            act ++;
             heart.isTurn = false;
             heart.setPositionFight();
+            sans.setIsAnimationVoidFinishedFalse();
         }
-        if (Gdx.input.isKeyPressed(Keys.ESCAPE)) {
+
+        if (Gdx.input.isKeyPressed(Keys.ESCAPE) && barAttack == null && heart.isTurn) {
+            disposeResourceAnimationAttack();
             selectSound();
             labelSans.remove();
             heart.setOption(0);
@@ -295,7 +401,7 @@ public class Events {
     }
 
     public static void isFightSelected(boolean isOverFightOp) {
-        fightOp.updateIsCollided(CollisionListener.isCollided(heart, fightOp));
+        fightOp.updateIsCollided(isCollided(heart, fightOp));
         if (Gdx.input.isKeyPressed(Keys.ENTER) && isOverFightOp && canSelect && boxHeart.mode == 0) {
             selectSound();
             canSelect = false;
@@ -304,7 +410,7 @@ public class Events {
     }
 
     public static void isActSelected(boolean isOverAct) {
-        actOp.updateIsCollided(CollisionListener.isCollided(heart, actOp));
+        actOp.updateIsCollided(isCollided(heart, actOp));
         if (Gdx.input.isKeyPressed(Keys.ENTER) && isOverAct && canSelect && boxHeart.mode == 0) {
             selectSound();
             canSelect = false;
@@ -313,7 +419,7 @@ public class Events {
     }
 
     public static void isItemSelected(boolean isOverItem) {
-        itemOp.updateIsCollided(CollisionListener.isCollided(heart, itemOp));
+        itemOp.updateIsCollided(isCollided(heart, itemOp));
         if (Gdx.input.isKeyPressed(Keys.ENTER) && isOverItem && canSelect && boxHeart.mode == 0) {
             selectSound();
             canSelect = false;
@@ -322,7 +428,7 @@ public class Events {
     }
 
     public static void isMercySelected(boolean isOverMercy) {
-        mercyOp.updateIsCollided(CollisionListener.isCollided(heart, mercyOp));
+        mercyOp.updateIsCollided(isCollided(heart, mercyOp));
         if (Gdx.input.isKeyPressed(Keys.ENTER) && isOverMercy && canSelect && boxHeart.mode == 0) {
             selectSound();
             canSelect = false;
@@ -339,9 +445,9 @@ public class Events {
             case 4 -> selectMercy();
         }
 
-        isFightSelected(CollisionListener.isCollided(heart, fightOp));
-        isActSelected(CollisionListener.isCollided(heart, actOp));
-        isItemSelected(CollisionListener.isCollided(heart, itemOp));
-        isMercySelected(CollisionListener.isCollided(heart,mercyOp));
+        isFightSelected(isCollided(heart, fightOp));
+        isActSelected(isCollided(heart, actOp));
+        isItemSelected(isCollided(heart, itemOp));
+        isMercySelected(isCollided(heart,mercyOp));
     }
 }

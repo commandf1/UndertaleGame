@@ -4,21 +4,42 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Batch;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
+
+import static com.game.BlackScreen.VH_HEIGHT;
+import static com.game.BlackScreen.VH_WIDTH;
 
 public class BoxAttack extends Actor {
     private final Sprite boxAttack;
 
-    public BoxAttack(float x, float y) {
-        setPosition(x, y);
+    private final Rectangle hitBoxCenter;
+
+    public BoxAttack(float x, float y, float width, float height) {
         boxAttack = new Sprite(new Texture(Gdx.files.internal("images/HitSprite.png")));
         boxAttack.setRegion(13, 30, 546, 115);
-        setX(getX() - (float) boxAttack.getRegionWidth() /2);
-        setSize(boxAttack.getRegionWidth(), boxAttack.getRegionHeight());
+        setSize(width - 7 * VH_WIDTH, height- 5 * VH_HEIGHT);
+        boxAttack.setOriginCenter();
+        boxAttack.setPosition(getX(), getY());
+
+        setOrigin((float) boxAttack.getRegionWidth() /2, (float) boxAttack.getRegionHeight() /2);
+        setPosition(x - getWidth()/2,y - getHeight()/2);
+        hitBoxCenter = new Rectangle(getX(), getY(), 15 * VH_WIDTH, getHeight() );
+
     }
+
+    public Rectangle getHitBoxCenter() {
+        return hitBoxCenter;
+    }
+
+    public void dispose() {
+        boxAttack.getTexture().dispose();
+        remove();
+    }
+
 
     @Override
     public void draw(Batch batch, float parentAlpha) {
-        batch.draw(boxAttack,  getX(), getY(), (float) boxAttack.getRegionWidth() /2, (float) boxAttack.getRegionHeight() /2, boxAttack.getRegionWidth(), boxAttack.getRegionHeight(), 1f, 1f, 0);
+        batch.draw(boxAttack,  getX(), getY(), (float) boxAttack.getRegionWidth() /2, (float) boxAttack.getRegionHeight() /2, getWidth(), getHeight(),  1, 1, 0);
     }
 }

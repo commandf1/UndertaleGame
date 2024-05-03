@@ -96,8 +96,8 @@ public class Undertale extends Game {
     @Override
     public void create() {
         initData( );
-        showTestScreen();
-        //showMainMenuScreen();
+        //showTestScreen();
+        showMainMenuScreen();
     }
 
     @Override

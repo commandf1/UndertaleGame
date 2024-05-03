@@ -50,6 +50,11 @@ public class Hit extends Actor {
         }
     }
 
+    public void dispose() {
+        hit.getTexture().dispose();
+        remove();
+    }
+
     @Override
     public void draw(Batch batch, float parentAlpha) {
         super.draw(batch, parentAlpha);
@@ -58,7 +63,7 @@ public class Hit extends Actor {
             remove();
         } else {
             TextureRegion currentFrame = animation.getKeyFrame(stateTime*7, false);
-            batch.draw(currentFrame, getX() , getY(), (float) currentFrame.getRegionWidth() /2, (float) currentFrame.getRegionHeight() /2, currentFrame.getRegionWidth(), currentFrame.getRegionHeight(), 1.5f, 1.5f, 0);
+            batch.draw(currentFrame, getX() , getY(), (float) currentFrame.getRegionWidth() /2, (float) currentFrame.getRegionHeight() /2, currentFrame.getRegionWidth(), currentFrame.getRegionHeight(), 2f, 2f, 0);
         }
 
 

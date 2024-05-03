@@ -2,11 +2,9 @@ package com.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Sounds {
-    private static Music dialogueSound, healSound, musicBackground, soulDamagedSound, selectSound, alertSound, gameOverTheme, gasterBlasterSound, soulShatterSound, dogSound;
+    private static Music attackSwipeSound, dialogueSound, healSound, musicBackground, soulDamagedSound, selectSound, alertSound, gameOverTheme, gasterBlasterSound, soulShatterSound, dogSound;
 
     public static void fightSound() {
         stopAllSounds();
@@ -104,6 +102,14 @@ public class Sounds {
         }
     }
 
+    public static void attackSwipeSound() {
+        attackSwipeSound = Gdx.audio.newMusic(Gdx.files.internal("sound/Attack_Swipe.mp3"));
+        attackSwipeSound.play();
+        if (!attackSwipeSound.isPlaying() && attackSwipeSound !=null) {
+            attackSwipeSound.dispose();
+        }
+    }
+
     public static void gameOverTheme() {
         gameOverTheme = Gdx.audio.newMusic(Gdx.files.internal("sound/Game_Over_Theme.mp3"));
         gameOverTheme.play();
@@ -113,6 +119,10 @@ public class Sounds {
         }
     }
     public static void stopAllSounds()   {
+        if (attackSwipeSound != null) {
+            attackSwipeSound.stop();
+            attackSwipeSound.dispose();
+        }
         if (selectSound != null) {
             selectSound.stop();
             selectSound.dispose();

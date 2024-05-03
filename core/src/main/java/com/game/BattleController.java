@@ -40,14 +40,14 @@ public class BattleController {
 
     static float secondsTime = 0, secondTimeBetweenTransitions = 0;
 
-    static void throwHeart(int speed) {
+    static void throwHeart() {
         switch (direction) {
             case 0 -> {
                 if (heart.getY() == boxHeart.getY() + boxHeart.getHeight() - heart.getSprite().getRegionHeight() - 15) {
                     canThrowUp = false;
                 }
                 if ( canThrowUp ) {
-                    heart.setY(Math.min(heart.getY() + speed, boxHeart.getY() + boxHeart.getHeight() - heart.getSprite().getRegionHeight() - 15) );
+                    heart.setY(Math.min(heart.getY() + 20, boxHeart.getY() + boxHeart.getHeight() - heart.getSprite().getRegionHeight() - 15) );
                 }
             }
             case 1 -> {
@@ -55,7 +55,7 @@ public class BattleController {
                     canThrowRight = false;
                 }
                 if ( canThrowRight ) {
-                    heart.setX(Math.min(heart.getX() + speed, boxHeart.getX() + boxHeart.getWidth() - heart.getSprite().getRegionWidth() - 15));
+                    heart.setX(Math.min(heart.getX() + 20, boxHeart.getX() + boxHeart.getWidth() - heart.getSprite().getRegionWidth() - 15));
                 }
             }
             case 2 ->
@@ -64,7 +64,7 @@ public class BattleController {
                     canThrowDown = false;
                 }
                 if ( canThrowDown ) {
-                    heart.setY(Math.max(heart.getY() - speed, boxHeart.getY() + heart.getSprite().getRegionHeight()));
+                    heart.setY(Math.max(heart.getY() - 20, boxHeart.getY() + heart.getSprite().getRegionHeight()));
                 }
             }
             case 3 -> {
@@ -72,7 +72,7 @@ public class BattleController {
                     canThrowLeft = false;
                 }
                 if ( canThrowLeft ) {
-                    heart.setX(Math.max(heart.getX() - speed, boxHeart.getX() + heart.getSprite().getRegionWidth()));
+                    heart.setX(Math.max(heart.getX() - 20, boxHeart.getX() + heart.getSprite().getRegionWidth()));
                 }
             }
         }
@@ -105,49 +105,49 @@ public class BattleController {
                 if (isGeneratedRight) {
                     heart.setAngle(90);
                     direction = 1;
-                    throwHeart(20);
+                    throwHeart();
 
                     new AlertBox(extension, boxHeart.getHeight() - VH_HEIGHT*3f, boxHeart.getX() + boxHeart.getWidth() - VH_WIDTH * .7f - extension, boxHeart.getY() + VH_HEIGHT * 1.5f).draw(batch, 1);
                 }
                 if (isGeneratedLeft) {
                     heart.setAngle(-90);
                     direction = 3;
-                    throwHeart(20);
+                    throwHeart();
 
                     new AlertBox( extension, boxHeart.getHeight() - VH_HEIGHT*3f, boxHeart.getX() + VH_WIDTH * .7f, boxHeart.getY() + VH_HEIGHT * 1.5f).draw(batch, 1);
                 }
                 if (isGeneratedUp) {
                     heart.setAngle(180);
                     direction = 0;
-                    throwHeart(20);
+                    throwHeart();
 
                     new AlertBox(boxHeart.getWidth() - VH_HEIGHT*2.5f, extension - VH_WIDTH * .7f, boxHeart.getX() + VH_WIDTH * .7f, boxHeart.getY() + boxHeart.getHeight() - extension).draw(batch, 1);
                 }
                 if (isGeneratedDown) {
                     heart.setAngle(0);
                     direction = 2;
-                    throwHeart(20);
+                    throwHeart();
 
                     new AlertBox(boxHeart.getWidth() - VH_HEIGHT*2.5f , extension - VH_WIDTH * .7f, boxHeart.getX() + VH_WIDTH * .7f, boxHeart.getY() + VH_WIDTH * .7f).draw(batch, 1);
                 }
                 switch (direction) {
                     case 0 -> {
-                        if (sans.isAnimationFinished() && sans.isCanAnimate()) {
+                        if (sans.isAnimationFinished()) {
                             sans.animationUpwardHand();
                         }
                     }
                     case 1 -> {
-                        if (sans.isAnimationFinished() && sans.isCanAnimate()) {
+                        if (sans.isAnimationFinished()) {
                             sans.animationRightHand();
                         }
                     }
                     case 2 -> {
-                        if (sans.isAnimationFinished() && sans.isCanAnimate()) {
+                        if (sans.isAnimationFinished()) {
                             sans.animationDownwardHand();
                         }
                     }
                     case 3 -> {
-                        if (sans.isAnimationFinished() && sans.isCanAnimate()) {
+                        if (sans.isAnimationFinished()) {
                             sans.animationLeftHand();
                         }
                     }
@@ -247,13 +247,13 @@ public class BattleController {
         }
     }
 
-    static void gastersBlasterAttack(float scale, boolean isLeft) {
+    static void gastersBlasterAttack(boolean isLeft) {
         if (isLeft && !bonesLeft.isEmpty()) {
-            bonesLeft.getFirst().gasterBlasterAttack(scale, true);
+            bonesLeft.getFirst().gasterBlasterAttack((float) 1.0, true);
             return;
         }
         if (!bonesRight.isEmpty()) {
-            bonesRight.getFirst().gasterBlasterAttack(scale, false);
+            bonesRight.getFirst().gasterBlasterAttack((float) 1.0, false);
         }
     }
 
@@ -273,8 +273,8 @@ public class BattleController {
                 isCanAddRight = false;
             }
         }
-        gastersBlasterAttack(1f, true);
-        gastersBlasterAttack(1f, false);
+        gastersBlasterAttack(true);
+        gastersBlasterAttack(false);
 
 
         if (secondsTime > 20) {
@@ -665,9 +665,8 @@ public class BattleController {
                 drawBones();
                 drawBlackGround();
             }
-            case 6 -> {
-                updateGameOnHeartWon();
-            }
+            case 6 -> updateGameOnHeartWon();
+
 
         }
     }
