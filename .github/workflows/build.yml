@@ -26,7 +26,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Install missing dependencies
-        run: sudo apt-get update && sudo apt-get install -y curl unzip coreutils findutils xargs
+        run: sudo apt-get update && sudo apt-get install -y curl unzip coreutils findutils
 
       - name: Install Sonar Scanner
         run: |
