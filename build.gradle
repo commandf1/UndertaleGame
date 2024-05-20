@@ -72,4 +72,15 @@ subprojects {
   }
 }
 
+plugins {
+  id "org.sonarqube" version "5.0.0.4638"
+}
+
+sonar {
+  properties {
+    property "sonar.projectKey", "GovernmentAgency"
+    property "sonar.projectName", "GovernmentAgency"
+  }
+}
+
 eclipse.project.name = 'Game' + '-parent'
