@@ -40,12 +40,19 @@ jobs:
       - name: Build with Gradle
         run: ./gradlew build --info
 
+      - name: Install SonarQube Scanner
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unzip
+          curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
+          unzip sonar-scanner.zip -d $HOME
+
       - name: Run SonarQube analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: |
-          sonar-scanner \
+          $HOME/sonar-scanner-4.6.2.2472-linux/bin/sonar-scanner \
           -Dsonar.projectKey=UndertaleGame \
           -Dsonar.sources=core/src/main/java \
           -Dsonar.java.binaries=core/build/classes \
