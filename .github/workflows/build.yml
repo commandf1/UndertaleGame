@@ -56,5 +56,5 @@ jobs:
           -Dsonar.projectKey=UndertaleGame \
           -Dsonar.sources=core/src/main/java \
           -Dsonar.java.binaries=core/build/classes \
-          -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          -Dsonar.host.url=http://localhost:9000 \
+          -Dsonar.login=sqp_0366c5022b51c1d15f9184a958e59d78a05f7b26
