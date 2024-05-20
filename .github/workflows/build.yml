@@ -26,7 +26,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Install missing dependencies
-        run: sudo apt-get update && sudo apt-get install -y curl unzip coreutils findutils
+        run: sudo apt-get update && sudo apt-get install -y curl unzip coreutils findutils xargs
 
       - name: Install Sonar Scanner
         run: |
@@ -47,4 +47,4 @@ jobs:
           -Dsonar.sources=core/src/main/java \
           -Dsonar.java.binaries=core/build/classes \
           -Dsonar.host.url=http://localhost:9000 \
-          -Dsonar.login=sqp_613a99c1b048d32a042553fa609c4263d49fc872
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
