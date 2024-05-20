@@ -36,3 +36,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: ./gradlew build sonar --info
+          sonar-scanner \
+          -Dsonar.projectKey=UndertaleGame \
+          -Dsonar.sources=core/src/main/java \
+          -Dsonar.java.binaries=core/build/classes \
+          -Dsonar.host.url=http://localhost:9000 \
+          -Dsonar.login=${{ secrets.SONAR_TOKEN }}
