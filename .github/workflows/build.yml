@@ -30,21 +30,25 @@ jobs:
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
+
       - name: Install Sonar Scanner
         run: |
           curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
           unzip sonar-scanner.zip -d $HOME
-          export PATH=$PATH:$HOME/sonar-scanner-4.6.2.2472-linux/bin
-        
+        shell: bash
+        env:
+          PATH: ${{ runner.tool_cache }}/sonar-scanner-4.6.2.2472-linux/bin:${{ env.PATH }}
+
       - name: Build and analyze with SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          PATH: $HOME/sonar-scanner-4.6.2.2472-linux/bin:$PATH
         run: |
           ./gradlew build
           sonar-scanner \
           -Dsonar.projectKey=UndertaleGame \
           -Dsonar.sources=core/src/main/java \
           -Dsonar.java.binaries=core/build/classes \
-          -Dsonar.host.url=http://localhost:9000
-          -Dsonar.login=sqp_a5ae0f3c79d94ea2fb3c0a80ac7a63e3c0e395aa
+          -Dsonar.host.url=$SONAR_HOST_URL \
+          -Dsonar.login=$SONAR_TOKEN
