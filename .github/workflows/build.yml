@@ -38,9 +38,8 @@ jobs:
         run: |
           curl -sSLo sonar-scanner.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
           unzip sonar-scanner.zip -d $HOME
-        shell: bash
         env:
-          PATH: $HOME/sonar-scanner-4.6.2.2472-linux/bin:${{ env.PATH }}
+          JAVA_HOME: /opt/hostedtoolcache/Java_Adopt_jdk/17.0.11-9/x64
 
       - name: Build and analyze with SonarQube
         env:
