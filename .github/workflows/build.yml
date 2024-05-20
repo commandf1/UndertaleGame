@@ -25,14 +25,8 @@ jobs:
       - name: Give execute permissions for gradlew
         run: chmod +x ./gradlew
 
-      - name: Cache SonarQube dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
-
-      - name: Install curl
-        run: sudo apt-get update && sudo apt-get install -y curl
+      - name: Install missing dependencies
+        run: sudo apt-get update && sudo apt-get install -y curl unzip coreutils findutils
 
       - name: Install Sonar Scanner
         run: |
