@@ -41,7 +41,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
           PATH: $HOME/sonar-scanner-4.6.2.2472-linux/bin:$PATH
         run: |
-          ./gradlew build
+          ./gradlew build sonar --info
           sonar-scanner \
           -Dsonar.projectKey=UndertaleGame \
           -Dsonar.sources=core/src/main/java \
