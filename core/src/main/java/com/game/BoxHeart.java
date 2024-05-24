@@ -15,7 +15,9 @@ public class BoxHeart extends Actor {
     public int mode = 0;
 
     public float MAX_WIDTH = VH_WIDTH * 90,  MAX_HEIGHT_SQUARE = VH_WIDTH * 20, MIN_WIDTH = VH_WIDTH * 70;
+
     private final Color borderColor = Color.WHITE;
+
         public BoxHeart(float width, float height) {
             setWidth(width);
             setHeight(height);

@@ -1,0 +1,6 @@
+projectKey=UndertaleGame
+serverUrl=http://localhost:9000
+serverVersion=10.5.1.90531
+dashboardUrl=http://localhost:9000/dashboard?id=UndertaleGame
+ceTaskId=462177d1-00c5-432e-a8fa-25f85b4113e9
+ceTaskUrl=http://localhost:9000/api/ce/task?id=462177d1-00c5-432e-a8fa-25f85b4113e9

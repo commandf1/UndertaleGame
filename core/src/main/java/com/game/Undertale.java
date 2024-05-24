@@ -76,6 +76,9 @@ public class Undertale extends Game {
 
     public void showCreditsScreen() { switchScreen(new CreditsScreen(this));}
 
+    public void showHowToPlayScreen() { switchScreen(new HowToPlayScreen(this));}
+
+
     public static void initData( ) {
         if (shapeRenderer == null) {
             shapeRenderer = new ShapeRenderer();

@@ -3,20 +3,25 @@ package com.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import listener.CollisionListener;
-
 import java.util.ArrayList;
 import java.util.Iterator;
-
 import static com.badlogic.gdx.math.MathUtils.random;
 import static com.game.BlackScreen.*;
 import static com.game.Direction.*;
-import static com.game.Events.optionSelected;
+import static com.game.Events.*;
+import static com.game.Sans.timeHead;
 import static com.game.Sounds.*;
+import static com.game.StateMessage.*;
 import static com.game.Undertale.batch;
+import static com.game.Undertale.stage;
 
 public class BattleController {
-    static int act = 0, nextAttack = 0;
+    static int act = 4, nextAttack = 0;
     static boolean canAdd = true, isCanAddLeft = true, isCanAddRight = true;
+
+    private static boolean isOptionAvailable = true;
+
+    private static Dialog dialog;
 
     static ArrayList<ObjetsItems> platforms = new ArrayList<>();
 
@@ -247,6 +252,18 @@ public class BattleController {
         }
     }
 
+    static void generateBonesSparing() {
+        secondsTime+= Gdx.graphics.getDeltaTime();
+        secondTimeBetweenTransitions += Gdx.graphics.getDeltaTime();
+        if ( secondsTime < 0.6) {
+            canAdd = true;
+        } else if (canAdd && secondsTime > 0.6) {
+            bonesDown.add(new ObjetsItems(6, boxHeart.getX(), 0 - VH_HEIGHT * 10f, UPWARD));
+            canAdd = false;
+        }
+        moveBonesSparing();
+    }
+
     static void gastersBlasterAttack(boolean isLeft) {
         if (isLeft && !bonesLeft.isEmpty()) {
             bonesLeft.getFirst().gasterBlasterAttack((float) 1.0, true);
@@ -332,6 +349,12 @@ public class BattleController {
         }
     }
 
+    public static void drawBonesMercy() {
+        for (ObjetsItems bone: bonesDown) {
+            bone.drawBoneMercy();
+        }
+    }
+
     public static void drawGasterBlaster(float scale) {
         for(ObjetsItems bone : bonesLeft) {
             bone.drawGhosterBlaster(90, scale);
@@ -360,6 +383,18 @@ public class BattleController {
         }
 
 
+    }
+
+    static void moveBonesSparing() {
+        for (ObjetsItems bone : bonesDown) {
+            if (bone.getDirection() == UPWARD) {
+                bone.moveUp(boxHeart.getY() - 3 * VH_HEIGHT);
+                if (CollisionListener.isCollided(heart, bone)) {
+                    soulDamaged();
+                    heart.setHp(Math.max(heart.getHp() - 0.5f, 0));
+                }
+            }
+        }
     }
 
     static void moveBones2() {
@@ -597,6 +632,12 @@ public class BattleController {
 
     }
 
+    public static void createDialog() {
+        if (dialog == null) {
+            dialog = new Dialog();
+        }
+    }
+
 
     static void generateAct() {
         switch (act) {
@@ -665,7 +706,136 @@ public class BattleController {
                 drawBones();
                 drawBlackGround();
             }
-            case 6 -> updateGameOnHeartWon();
+            case 6 -> {
+                heart.setOption(1);
+                boxHeart.changeDimensionsMinSquare();
+                isSparing = true;
+                sans.setAnimationMercy();
+                createDialog();
+                if (!sans.getIsAnimationHeadDone() && boxHeart.mode == 2) {
+                    sans.animationHeadMercy();
+                    dialog.writeMessage(EMPTY);
+                    if (dialog.getStage() == null) {
+                        stage.addActor(dialog);
+                        stage.addActor(dialog.getLabelDialog());
+                    }
+                    timeHead ++;
+                }
+                if (sans.getIsAnimationHeadDone() && sans.isAnimationHeadFinished()) {
+                    dialog.remove();
+                    dialog.getLabelDialog().remove();
+                }
+                if (!sans.isAnimationHeadFinished() && canSelect && Gdx.input.isKeyPressed(Input.Keys.ENTER)) {
+                    dialog.writeMessage(EMPTY);
+                    timeHead ++;
+                    canSelect = false;
+                }
+                if (dialog.getStage() != null) {
+                    switch (sans.getAnimationHead().getKeyFrameIndex(timeHead)) {
+                        case 1 -> {
+                            dialog.writeMessage(SANS_DIALOG_1);
+                        }
+                        case 2 -> {
+                            dialog.writeMessage(SANS_DIALOG_2);
+                        }
+                        case 3 -> {
+                            dialog.writeMessage(SANS_DIALOG_3);
+                        }
+                    }
+                } else if (timeHead == 4) {
+                    timeHead = 1;
+                    sans.setAnimationHeadFalse();
+                    setConfigTurnPlayer();
+                    mercySound();
+                    sans.animationWon();
+                }
+                stopFightSound();
+            }
+            case 7 -> {
+                heart.setOption(1);
+                boxHeart.changeDimensionsMinSquare();
+                isSparing = true;
+                createDialog();
+                if (!sans.getIsAnimationHeadDone() && boxHeart.mode == 2) {
+                    sans.animationHeadMercy2();
+
+                    dialog.writeMessage(EMPTY);
+                    if (dialog.getStage() == null) {
+                        stage.addActor(dialog);
+                        stage.addActor(dialog.getLabelDialog());
+                    }
+                }
+                if (sans.getIsAnimationHeadDone() && sans.isAnimationHeadFinished()) {
+                    dialog.remove();
+                    dialog.getLabelDialog().remove();
+                }
+                if (!sans.isAnimationHeadFinished() && canSelect && Gdx.input.isKeyPressed(Input.Keys.ENTER)) {
+                    dialog.writeMessage(EMPTY);
+                    timeHead ++;
+                    canSelect = false;
+                }
+                if (dialog.getStage() != null) {
+                    switch (sans.getAnimationHead().getKeyFrameIndex(timeHead)) {
+                        case 0 -> {
+                            dialog.writeMessage(SANS_DIALOG_4);
+                        }
+                        case 1 -> {
+                            dialog.writeMessage(SANS_DIALOG_5);
+                        }
+                        case 2 -> {
+                            dialog.writeMessage(SANS_DIALOG_6);
+                        }
+                        case 3 -> {
+                            fallChildSound();
+                            dialog.writeMessage(SANS_DIALOG_7);
+                            sans.setAnimationHeadWhite();
+                        }
+                    }
+                } else if (timeHead == 4) {
+                    sans.setAnimationHeadWhite();
+                    generateBonesSparing();
+                    drawBonesMercy();
+                    drawBlackGround();
+                }
+            }
+            case 8 -> {
+                stopHisTheme();
+                heart.setOption(1);
+                boxHeart.changeDimensionsMinSquare();
+                int valueAnimation = sans.advanceAnimation();
+                if ((valueAnimation==0 || valueAnimation ==6) && dialog.getStage() == null) {
+                    dialog.writeMessage(EMPTY);
+                    if (dialog.getStage() == null) {
+                        stage.addActor(dialog);
+                        stage.addActor(dialog.getLabelDialog());
+                    }
+                } else if (valueAnimation==0 && dialog.getStage() != null)
+                {
+                    dialog.writeMessage(SANS_DIALOG_8);
+                }
+
+
+                if(valueAnimation==1 && isOptionAvailable) {
+                    isOptionAvailable = false;
+                    dialog.remove();
+                    dialog.getLabelDialog().remove();
+                    attackSwipeSound();
+                    createHit();
+                } else if (valueAnimation==6) {
+                    dialog.writeMessage(SANS_DIALOG_9);
+                    if (Gdx.input.isKeyPressed(Input.Keys.ENTER)) {
+                        timeHead = 0;
+                        i = 0;
+                        isOptionAvailable = true;
+                        updateGameOnHeartWon();
+                    }
+                }
+
+                if (hit != null && hit.isAnimationFinished() && !isOptionAvailable && timeHead == 2) {
+                    timeHead++;
+                }
+
+            }
 
 
         }

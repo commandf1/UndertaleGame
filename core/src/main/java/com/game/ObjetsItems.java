@@ -100,6 +100,13 @@ public class ObjetsItems extends Actor {
                 setOriginY(getHeight() / 2);
                 hitBox = new Rectangle(getX(), getY() + 1, getWidth() * 0.2f, getHeight());
             }
+            case 6 -> {
+                // long bones vertical
+                setOriginX(getWidth() / 2);
+                setOriginY(getHeight() / 2);
+                this.imageObject.setRegion( 398 , 573 , 204, 102);
+                hitBox = new Rectangle(getX() , getY() , (getWidth()*2.5f)-4, getHeight()*3f-4);
+            }
         }
 
     }
@@ -250,6 +257,12 @@ public class ObjetsItems extends Actor {
         batch.end();
     }
 
+    public void drawBoneMercy() {
+        batch.begin();
+        batch.draw(imageObject, getX(), getY(), hitBox.getWidth(), hitBox.getHeight());
+        batch.end();
+    }
+
     public void drawBoneTab() {
         batch.begin();
         batch.draw(imageObject,  getX(), getY(), getWidth()*2.5f, getHeight()*2f);
@@ -315,6 +328,11 @@ public class ObjetsItems extends Actor {
 
     public void moveUpFast(float max) {
         setY(Math.min(getY() + 15 , max) );
+        updateHitBox();
+    }
+
+    public void moveUp(float max) {
+        setY(Math.min(getY() + 20 , max) );
         updateHitBox();
     }
 

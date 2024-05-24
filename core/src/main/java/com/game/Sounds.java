@@ -4,7 +4,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
 
 public class Sounds {
-    private static Music attackSwipeSound, dialogueSound, healSound, musicBackground, soulDamagedSound, selectSound, alertSound, gameOverTheme, gasterBlasterSound, soulShatterSound, dogSound;
+    private static Music attackSwipeSound, fallChildSound,inflictingDamageSound, dialogueSound, healSound, musicBackground, sansTalkingSound, soulDamagedSound, selectSound, alertSound, gameOverTheme, gasterBlasterSound, soulShatterSound,mercySound, dogSound;
 
     public static void fightSound() {
         stopAllSounds();
@@ -14,12 +14,64 @@ public class Sounds {
         musicBackground.play();
     }
 
+    public static void stopFightSound() {
+        if (musicBackground != null) {
+            musicBackground.stop();
+            musicBackground = null;
+        }
+    }
+
+    public static void mercySound(){
+        stopAllSounds();
+        if (mercySound == null || !mercySound.isPlaying()) {
+            mercySound = Gdx.audio.newMusic(Gdx.files.internal("sound/His_theme.mp3"));
+            mercySound.setLooping(true);
+            mercySound.setVolume(0.7f);
+            mercySound.play();
+        }
+    }
+
+    public static void stopHisTheme() {
+        if (mercySound.isPlaying()) {
+            mercySound.stop();
+        }
+    }
+
+    public static void fallChildSound(){
+        if (mercySound.isPlaying()) {
+            mercySound.stop();
+        }
+        if (fallChildSound == null || !fallChildSound.isPlaying()) {
+            fallChildSound = Gdx.audio.newMusic(Gdx.files.internal("sound/Fallen_Child.mp3"));
+            fallChildSound.setLooping(true);
+            fallChildSound.setVolume(0.7f);
+            fallChildSound.play();
+        }
+    }
+
     public static boolean isGameOverPlaying() {
         return gameOverTheme != null && gameOverTheme.isPlaying();
     }
 
     public static boolean isDialoguePlaying() {
         return dialogueSound != null && dialogueSound.isPlaying();
+    }
+
+    public static void sansTalkingSound() {
+        if (sansTalkingSound == null) {
+            sansTalkingSound = Gdx.audio.newMusic(Gdx.files.internal("sound/Sans_Talking_[cut_0sec].mp3"));
+        }
+        sansTalkingSound.play();
+        sansTalkingSound.setVolume(50);
+        if (!sansTalkingSound.isPlaying()){
+            sansTalkingSound.dispose();
+        }
+    }
+
+    public static void stopSansTalkingSound() {
+        if (sansTalkingSound != null && sansTalkingSound.isPlaying()) {
+            sansTalkingSound.stop();
+        }
     }
 
 
@@ -110,6 +162,16 @@ public class Sounds {
         }
     }
 
+    public static void inflictingDamageSound() {
+        if (inflictingDamageSound == null) {
+            inflictingDamageSound = Gdx.audio.newMusic(Gdx.files.internal("sound/InflictingDamageSans.mp3"));
+            inflictingDamageSound.play();
+        }
+        if (!inflictingDamageSound.isPlaying() && inflictingDamageSound !=null) {
+            inflictingDamageSound.dispose();
+        }
+    }
+
     public static void gameOverTheme() {
         gameOverTheme = Gdx.audio.newMusic(Gdx.files.internal("sound/Game_Over_Theme.mp3"));
         gameOverTheme.play();
@@ -162,6 +224,22 @@ public class Sounds {
         if (healSound != null) {
             healSound.stop();
             healSound.dispose();
+        }
+        if (sansTalkingSound != null) {
+            sansTalkingSound.stop();
+            sansTalkingSound.dispose();
+        }
+        if (fallChildSound != null) {
+            fallChildSound.stop();
+            fallChildSound.dispose();
+        }
+        if (mercySound !=null) {
+            mercySound.stop();
+            mercySound.dispose();
+        }
+        if (inflictingDamageSound != null) {
+            inflictingDamageSound.stop();
+            inflictingDamageSound.dispose();
         }
     }
 }

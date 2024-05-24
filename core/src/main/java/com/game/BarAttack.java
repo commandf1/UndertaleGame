@@ -29,6 +29,8 @@ public class BarAttack extends Actor {
 
     private final Rectangle hitBox;
 
+    private int speedBar;
+
     public BarAttack(float y) {
         barAttackImage = new Sprite(new Texture(Gdx.files.internal("images/HitSprite.png")));
         barAttackImage.setRegion(1139, 23,14,128);
@@ -44,6 +46,10 @@ public class BarAttack extends Actor {
         }
         hitBox = new Rectangle(barAttackImage.getX(), barAttackImage.getY(), getWidth(), getHeight());
 
+    }
+
+    public void setSpeedBar() {
+        speedBar = random.nextInt(1,11);
     }
 
     private void updateHitBox() {
@@ -95,15 +101,14 @@ public class BarAttack extends Actor {
 
     public void move() {
         if (canMove) {
-            System.out.println(hitBox.getX());
             if (direction == TOWARD) {
-                barAttackImage.setX(Math.min(barAttackImage.getX() + 1, boxHeart.getX() + boxHeart.getWidth()));
+                barAttackImage.setX(Math.min(barAttackImage.getX() + speedBar, boxHeart.getX() + boxHeart.getWidth()));
                 if (barAttackImage.getX() ==
                     boxHeart.getX() + boxHeart.getWidth()) {
                     remove();
                 }
             } else {
-                barAttackImage.setX(Math.max(barAttackImage.getX() - 1, boxHeart.getX()));
+                barAttackImage.setX(Math.max(barAttackImage.getX() - speedBar, boxHeart.getX()));
                 if (barAttackImage.getX() == boxHeart.getX()) {
                     remove();
                 }

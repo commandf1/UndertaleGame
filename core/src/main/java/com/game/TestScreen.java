@@ -4,8 +4,13 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.scenes.scene2d.actions.Actions;
+import com.badlogic.gdx.scenes.scene2d.actions.SequenceAction;
+
 import static com.game.BlackScreen.VH_HEIGHT;
 import static com.game.BlackScreen.boxHeart;
+import static com.game.Sans.timeHead;
+import static com.game.Sounds.attackSwipeSound;
 import static com.game.Undertale.stage;
 
 public class TestScreen implements Screen {
@@ -13,62 +18,37 @@ public class TestScreen implements Screen {
 
     private BarAttack barAttack;
 
+    private Sans sans;
+
     private MissLabel missLabel;
 
     private boolean isOptionAvailable = true;
 
-    private Hit hit;
+    public Hit hit;
     @Override
     public void show() {
-        //boxAttack = new BoxAttack((float) Gdx.graphics.getWidth() /2, (float) Gdx.graphics.getHeight() /2);
-        barAttack = new BarAttack(boxHeart.getY() + 3);
+        hit = new Hit((float) Gdx.graphics.getWidth() /2, (float) Gdx.graphics.getHeight()/2 + 4 * VH_HEIGHT);
+        sans = new Sans();
 
-        hit = new Hit(boxAttack.getX() + boxAttack.getWidth()/2, boxAttack.getY() + boxAttack.getHeight() + 4 * VH_HEIGHT);
-        missLabel = new MissLabel(boxAttack.getX() + boxAttack.getWidth()/2, hit.getY() + hit.getHeight() + 4 * VH_HEIGHT);
+        sans.animationWon();
+        stage.addActor(sans);
+
     }
 
     @Override
     public void render(float v) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-        if (!Gdx.input.isKeyPressed(Input.Keys.ENTER)) {
-            isOptionAvailable = true;
-        }
 
-        float positionBarNormalized = barAttack.getX() - boxAttack.getX();
-
-        if (Gdx.input.isKeyPressed(Input.Keys.ENTER) && boxAttack.getStage() == null) {
-            stage.addActor(boxAttack);
+        if(sans.advanceAnimation()==1 && isOptionAvailable) {
             isOptionAvailable = false;
-        } else if (Gdx.input.isKeyPressed(Input.Keys.ENTER) && boxAttack.getStage() != null && isOptionAvailable){
+            System.out.println("hi");
+            attackSwipeSound();
             hit.animationHit();
             stage.addActor(hit);
-            stage.addActor(missLabel);
-            if (barAttack.getStage() == null) {
-                stage.addActor(barAttack);
-            }
-
-            isOptionAvailable = false;
-
-            System.out.println("POSITION PRESSED Enter : " + (barAttack.getX() - boxAttack.getX()));
-            if ( 262 <=  positionBarNormalized &&  positionBarNormalized <= 282 ) {
-                System.out.println("CENTERED");
-                if (positionBarNormalized == 273 ) {
-                    System.out.println("PERFECT");
-                }
-            }
-            barAttack.setX(boxAttack.getX());
-
-        }  else if (Gdx.input.isKeyPressed(Input.Keys.ESCAPE) && boxAttack.getStage() != null){
-            boxAttack.remove();
-            barAttack.remove();
-            hit.remove();
-            missLabel.remove();
-            barAttack.setX(boxAttack.getX());
         }
-
-        if (barAttack.getStage() != null) {
-            barAttack.setX(Math.min(barAttack.getX() + 6, boxAttack.getX() + boxAttack.getWidth()));
+        if (hit.isAnimationFinished() && !isOptionAvailable && timeHead == 1) {
+            timeHead++;
         }
         stage.act(v);
         stage.draw();

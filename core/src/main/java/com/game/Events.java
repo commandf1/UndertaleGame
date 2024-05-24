@@ -3,6 +3,8 @@ package com.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import java.util.ArrayList;
+import static com.badlogic.gdx.graphics.Color.WHITE;
+import static com.badlogic.gdx.graphics.Color.YELLOW;
 import static com.game.BattleController.act;
 import static com.game.BlackScreen.*;
 import static com.game.FabricElements.createLabelMessage;
@@ -14,7 +16,7 @@ import static listener.CollisionListener.isCollided;
 
 
 public class Events {
-    private static int i = 0, iteratorDeleted = 0;
+    public static int i = 0, iteratorDeleted = 0;
 
     public static final ArrayList<LabelMessage> items = new ArrayList<>(4);
 
@@ -28,7 +30,7 @@ public class Events {
 
     private static BoxAttack boxAttack;
 
-    private static Hit hit;
+    public static Hit hit;
 
     private static BarAttack barAttack;
 
@@ -48,7 +50,7 @@ public class Events {
         }
         labelSans.setWrap(true);
         labelSans.setWidth(500);
-
+        labelSans.setColor(WHITE);
         labelSans.setPosition(boxHeart.getX() + VH_WIDTH * 6, boxHeart.getY() + boxHeart.getHeight() - VH_HEIGHT * 4 - labelSans.getHeight());
         stage.addActor(labelSans);
     }
@@ -57,6 +59,7 @@ public class Events {
         heart.remove();
         labelSans.setText(state.getValue());
     }
+
 
     public static void writeMessage(String description, StateMessage state) {
         if (labelSans == null ) {
@@ -92,6 +95,7 @@ public class Events {
     public static void createBarAttack() {
         if (barAttack == null) {
             barAttack = new BarAttack(boxHeart.getY() + VH_HEIGHT );
+            barAttack.setSpeedBar();
             stage.addActor(barAttack);
         }
     }
@@ -99,7 +103,7 @@ public class Events {
     public static void createHit() {
         attackSwipeSound();
         if (hit == null) {
-            hit = new Hit(boxAttack.getX() + boxAttack.getWidth()/2, sans.getY() - 4 * VH_HEIGHT);
+            hit = new Hit(sans.getX(), sans.getY() - 4 * VH_HEIGHT);
             stage.addActor(hit);
         } else if (hit.getStage() == null) {
             stage.addActor(hit);
@@ -140,11 +144,11 @@ public class Events {
             sans.animateVoidAttack();
         }
 
-        if ( labelSans == null || labelSans.getStage() == null && boxAttack == null) {
+        if ((labelSans == null || labelSans.getStage() == null || labelSans.getState() == SANS_SPARING ) && boxAttack == null) {
             createTarget(SANS);
             heart.setPositionSelectTarget();
         }
-        if ( labelSans.getStage() != null && boxAttack == null && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect) {
+        if ( labelSans != null &&  labelSans.getStage() != null && boxAttack == null && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect) {
             heart.remove();
             labelSans.remove();
             selectSound();
@@ -167,26 +171,28 @@ public class Events {
 
             stage.addActor(missLabel);
             labelSans.remove();
-            System.out.println(boxAttack.getWidth() * VH_WIDTH * 0.16f);
-            System.out.println("position: " + POSITION_BAR_NORMALIZED);
-            System.out.printf("Size %s , %s  -  Position %s\n", boxAttack.getWidth(), boxAttack.getHeight(), boxAttack.getX());
-
-            if (isCollided(barAttack,boxAttack)) {
-                System.out.println("centred at: " + POSITION_BAR_NORMALIZED);
+            if (isCollided(barAttack,boxAttack.getHitBoxCenter())) {
+                System.out.println("Centred at: " + POSITION_BAR_NORMALIZED);
                 if (POSITION_BAR_NORMALIZED == 273) {
                     score += 200;
                 }
                 score += 300;
-            } else if ((247 < POSITION_BAR_NORMALIZED && POSITION_BAR_NORMALIZED < 264
-            ) || (282 < POSITION_BAR_NORMALIZED && POSITION_BAR_NORMALIZED < 304)) {
+            } else if (isCollided(barAttack, boxAttack.getHitBoxGreenLeft()) || isCollided(barAttack, boxAttack.getHitBoxGreenRight())) {
+                System.out.println("Green Zone");
                 score += 150;
-                System.out.println("GREEN ZONE");
+            } else if (isCollided(barAttack, boxAttack.getHitBoxYellowLeft()) || isCollided(barAttack, boxAttack.getHitBoxYellowRight())) {
+                System.out.println("Yellow Zone");
+                score += 50;
+            } else if (isCollided(barAttack, boxAttack.getHitBoxRedLeft()) || isCollided(barAttack, boxAttack.getHitBoxRedRight())) {
+                System.out.println("Red Zone");
+                score += 15;
             }
 
 
             score += act * 100;
             disposeResourceAnimationAttack();
-            act ++;
+            act = !isSparing ? act + 1 : 8;
+
             heart.isTurn = false;
             heart.setPositionFight();
             sans.setIsAnimationVoidFinishedFalse();
@@ -199,12 +205,13 @@ public class Events {
             heart.setOption(0);
             optionSelected = 0;
             canSelect = false;
+            i = 0;
             heart.setPositionFightOp();
         }
     }
 
     public static void selectAct() {
-        if (labelSans == null || labelSans.getStage() == null) {
+        if (labelSans == null || labelSans.getStage() == null || labelSans.getState() == SANS_SPARING) {
             createTarget(SANS);
             heart.setPositionSelectTarget();
         }
@@ -229,10 +236,20 @@ public class Events {
                 }
                 case ACT_DESCRIPTION -> {
                     selectSound();
-                    labelSans.remove();
-                    act = act == 0 ? 1 : act;
-                    heart.isTurn = false;
-                    heart.setPositionFight();
+                    if (isSparing) {
+                        System.out.println("HI");
+                        labelSans.remove();
+                        heart.setPositionActOp();
+                        heart.setOption(0);
+                        optionSelected = 0;
+                        canSelect = false;
+                        stage.addActor(heart);
+                        return;
+                    }
+                        labelSans.remove();
+                        act = act == 0 ? 1 : act;
+                        heart.isTurn = false;
+                        heart.setPositionFight();
                 }
             }
 
@@ -246,6 +263,7 @@ public class Events {
                     heart.setOption(0);
                     optionSelected = 0;
                     canSelect = false;
+                    i = 0;
                     heart.setPositionActOp();
                 }
                 case CHECK -> {
@@ -324,9 +342,9 @@ public class Events {
             heart.setPositionSelectItem();
             heart.setOption(4);
             canAddItems = false;
-        } else if (!isItemsInStage() && (labelSans.getState() == null || labelSans.getStage() == null)){
+        } else if (!isItemsInStage() && (labelSans.getState() == null || labelSans.getStage() == null || labelSans.getState() == SANS_SPARING)){
             labelSans.remove();
-            if (labelSans == null || labelSans.getStage() == null) {
+            if (labelSans == null || labelSans.getStage() == null || labelSans.getState() == SANS_SPARING) {
                 doShowItems();
             }
             heart.setPositionSelectItem();
@@ -350,11 +368,16 @@ public class Events {
         if (labelSans != null && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect && labelSans.getStage() != null && labelSans.getState() == ITEM_CONSUMED) {
             selectSound();
             labelSans.remove();
+            updateListItems();
             isWritingMessage = false;
+            canSelect = false;
+            if (isSparing) {
+                heart.setPositionItemOp();
+                stage.addActor(heart);
+                return;
+            }
             act = act == 0 ? 1 : act;
             heart.isTurn = false;
-            canSelect = false;
-            updateListItems();
             heart.setPositionFight();
         }
         if (Gdx.input.isKeyPressed(Keys.ENTER) && canSelect) {
@@ -373,13 +396,17 @@ public class Events {
             heart.setOption(0);
             optionSelected = 0;
             canSelect = false;
+            i = 0;
             heart.setPositionItemOp();
         }
     }
 
     public static void selectMercy() {
-        if (labelSans == null || labelSans.getStage() == null) {
+        if (labelSans == null || labelSans.getStage() == null || labelSans.getState() == SANS_SPARING) {
             createTarget(SPARE);
+            if (isSparing) {
+                labelSans.setColor(YELLOW);
+            }
             heart.setPositionSelectTarget();
         }
         if (labelSans.getStage() != null && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect && !isSparing) {
@@ -387,6 +414,14 @@ public class Events {
             labelSans.remove();
             heart.isTurn = false;
             act = act == 0 ? 1 : act;
+            canSelect = false;
+            heart.setPositionFight();
+        } else if (labelSans.getStage() != null && Gdx.input.isKeyPressed(Keys.ENTER) && canSelect && isSparing) {
+            selectSound();
+            labelSans.remove();
+            heart.isTurn = false;
+            act = 7;
+            heart.setOption(1);
             heart.setPositionFight();
         }
 
@@ -406,6 +441,19 @@ public class Events {
             selectSound();
             canSelect = false;
             optionSelected = 1;
+        }
+    }
+
+    public static void messageSparing() {
+        if (labelSans == null || labelSans.getStage() == null && boxHeart.mode == 0) {
+            createTarget(EMPTY);
+            isWritingMessage = true;
+        }
+
+        if (isWritingMessage) {
+            writeMessage("* Sans is sparing you", SANS_SPARING);
+            labelSans.setPosition(labelSans.getX(), boxHeart.getY() +boxHeart.getHeight()/2 + 3 * VH_HEIGHT);
+
         }
     }
 
@@ -439,10 +487,14 @@ public class Events {
     public static void detectEvent() {
         if (!Gdx.input.isKeyPressed(Keys.ENTER) && !Gdx.input.isKeyPressed(Keys.ESCAPE) && !canSelect) { canSelect = true;  }
         switch (optionSelected) {
+            case 0 -> {
+                if (isSparing) messageSparing();
+            }
             case 1 -> selectTarget();
             case 2 -> selectAct();
             case 3 -> selectItem();
             case 4 -> selectMercy();
+
         }
 
         isFightSelected(isCollided(heart, fightOp));

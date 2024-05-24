@@ -14,6 +14,7 @@ import java.time.LocalTime;
 import static com.game.BattleController.*;
 import static com.game.DataBase.*;
 import static com.game.Events.*;
+import static com.game.Sans.timeHead;
 import static com.game.Sounds.stopAllSounds;
 import static com.game.Undertale.*;
 
@@ -53,16 +54,21 @@ public class BlackScreen implements Screen {
     public static void updateGameOnHeartDeath() {
         if (heart.getHp() == 0) {
             deleteBones();
+            timeHead = 0;
+            i = 0;
             updatePlayerStats(game.getName(), score, Duration.between(game.getTimePlayed(), LocalTime.now()), false);
-            act = score = 0;
+            act = 4; score = 0;
+            isSparing = false;
             game.showGameOverScreen(heart);
         }
     }
 
     public static void updateGameOnHeartWon() {
             deleteBones();
+            isSparing = false;
             updatePlayerStats(game.getName(), score, Duration.between(game.getTimePlayed(), LocalTime.now()), true);
-            act = score = 0;
+            act = 4;
+            score = 0;
             game.showMainMenuScreen();
     }
 
@@ -156,7 +162,8 @@ public class BlackScreen implements Screen {
 
     void update() {
         if ( !heart.isTurn ) {
-             generateAct();
+            if (!Gdx.input.isKeyPressed(Input.Keys.ENTER) && !canSelect) { canSelect = true;  }
+            generateAct();
         } else {
             boxHeart.changeDimensionsMax();
             Heart.canMoveLeft = !Gdx.input.isKeyPressed(Input.Keys.LEFT) || Heart.canMoveLeft;

@@ -13,7 +13,7 @@ import static com.game.BlackScreen.VH_WIDTH;
 public class BoxAttack extends Actor {
     private final Sprite boxAttack;
 
-    private final Rectangle hitBoxCenter;
+    private final Rectangle hitBoxCenter, hitBoxGreenLeft, hitBoxGreenRight, hitBoxYellowLeft, hitBoxYellowRight, hitBoxRedLeft, hitBoxRedRight;
 
     public BoxAttack(float x, float y, float width, float height) {
         boxAttack = new Sprite(new Texture(Gdx.files.internal("images/HitSprite.png")));
@@ -24,12 +24,44 @@ public class BoxAttack extends Actor {
 
         setOrigin((float) boxAttack.getRegionWidth() /2, (float) boxAttack.getRegionHeight() /2);
         setPosition(x - getWidth()/2,y - getHeight()/2);
-        hitBoxCenter = new Rectangle(getX(), getY(), 15 * VH_WIDTH, getHeight() );
+        hitBoxCenter = new Rectangle(x - VH_WIDTH, y, 2 * VH_WIDTH, getHeight() );
+        hitBoxGreenLeft = new Rectangle(hitBoxCenter.getX() - 2.5f * VH_WIDTH, y, 2.5f * VH_WIDTH, getHeight());
+        hitBoxGreenRight = new Rectangle(hitBoxCenter.getX() + hitBoxCenter.getWidth(), y, 2.5f * VH_WIDTH, getHeight());
+
+        hitBoxYellowLeft = new Rectangle(hitBoxGreenLeft.getX() - 12f * VH_WIDTH, y, 12f * VH_WIDTH, getHeight());
+        hitBoxYellowRight = new Rectangle(hitBoxGreenRight.getX() + hitBoxGreenRight.getWidth(), y, 12f * VH_WIDTH, getHeight());
+
+        hitBoxRedLeft = new Rectangle(hitBoxYellowLeft.getX() - 17f * VH_WIDTH, y, 17f * VH_WIDTH, getHeight());
+        hitBoxRedRight = new Rectangle(hitBoxYellowRight.getX() + hitBoxYellowRight.getWidth(), y, 17f * VH_WIDTH, getHeight());
 
     }
 
     public Rectangle getHitBoxCenter() {
         return hitBoxCenter;
+    }
+
+    public Rectangle getHitBoxGreenLeft() {
+        return hitBoxGreenLeft;
+    }
+
+    public Rectangle getHitBoxGreenRight() {
+        return hitBoxGreenRight;
+    }
+
+    public Rectangle getHitBoxYellowLeft() {
+        return hitBoxYellowLeft;
+    }
+
+    public Rectangle getHitBoxYellowRight() {
+        return hitBoxYellowRight;
+    }
+
+    public Rectangle getHitBoxRedLeft() {
+        return hitBoxRedLeft;
+    }
+
+    public Rectangle getHitBoxRedRight() {
+        return hitBoxRedRight;
     }
 
     public void dispose() {

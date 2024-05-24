@@ -32,8 +32,8 @@ public class CollisionListener {
         return Intersector.overlaps(heart.getHitBox(), rashioLaser);
     }
 
-    public static boolean isCollided(BarAttack barAttack, BoxAttack boxAttack) {
-        return Intersector.overlaps(barAttack.getHitBox(), boxAttack.getHitBoxCenter());
+    public static boolean isCollided(BarAttack barAttack, Rectangle boxAttackHitBox) {
+        return Intersector.overlaps(barAttack.getHitBox(), boxAttackHitBox);
     }
 
 
